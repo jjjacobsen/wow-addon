@@ -8,3 +8,4 @@ Core.lua
 HideBuffCollapseArrow.lua
 PlayerRareElitePortrait.lua
 AuctionHousePrices.lua
+AutoAcceptSellJunkConfirmation.lua
