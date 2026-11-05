@@ -20,6 +20,9 @@ Reload is enabled only when these saved selections differ from the settings appl
 All reload-based features start enabled. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
 
+Mute spell failure sounds mutes the five spell fizzle files for all failures, separate from Filter common errors. It does not mute normal spell sounds or change the error speech setting
+Turn it off and reload to restore those sounds
+
 ## Tank nameplates
 
 Use the Tank mode checkbox in `/jj` or `/jj tank` to toggle tank mode immediately. The checkbox stays in sync with the command and does not enable Reload

@@ -11,3 +11,4 @@ TankNameplates.lua
 AuctionHousePrices.lua
 AutoAcceptSellJunkConfirmation.lua
 FilterCommonErrors.lua
+MuteSpellFailureSounds.lua
