@@ -10,3 +10,4 @@ PlayerRareElitePortrait.lua
 TankNameplates.lua
 AuctionHousePrices.lua
 AutoAcceptSellJunkConfirmation.lua
+FilterCommonErrors.lua
