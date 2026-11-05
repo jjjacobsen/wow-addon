@@ -7,5 +7,6 @@
 Core.lua
 HideBuffCollapseArrow.lua
 PlayerRareElitePortrait.lua
+TankNameplates.lua
 AuctionHousePrices.lua
 AutoAcceptSellJunkConfirmation.lua

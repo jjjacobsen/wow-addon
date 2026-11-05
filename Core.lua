@@ -60,8 +60,10 @@ local function CreateSettings()
             window:SetShown(not window:IsShown())
         elseif command == "scan" or command == "clear" then
             addon.AuctionHouseCommand(command)
+        elseif command == "tank" then
+            addon.ToggleTankNameplates()
         else
-            print("wow-addon: /jj, /jj scan, /jj clear")
+            print("wow-addon: /jj, /jj scan, /jj clear, /jj tank")
         end
     end
 end
