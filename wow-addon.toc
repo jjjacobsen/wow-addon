@@ -2,3 +2,5 @@
 ## Title: wow-addon
 ## Notes: Jonah's personal WoW tweaks
 ## Author: Jonah Jacobsen
+
+HideBuffCollapseArrow.lua
