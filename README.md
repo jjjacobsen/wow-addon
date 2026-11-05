@@ -17,8 +17,21 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 Use `/jj` to open the feature settings. Checkbox changes are saved between sessions and take effect after a UI reload
 Reload is enabled only when selections differ from the settings applied at startup. Click Reload to apply them
-Both features start enabled. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
+All features start enabled. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
+
+## Auction house prices
+
+Enable Auction house prices in `/jj` and reload to use `/jj scan` and `/jj clear`
+Open an auction house in your faction's capital, then use `/jj scan`. Keep it open until the scan completes
+Supported capitals are Stormwind, Ironforge, Darnassus, Orgrimmar, Thunder Bluff, and Undercity. Neutral auction houses and all other locations are not supported
+Scans use the full auction list, with a local account-wide 15-minute cooldown. The server can also throttle scans, including scans from other addons. A timeout or cancelled scan keeps the previous prices
+
+Item tooltips show the latest scan's lowest buyout per unit and the median of each day's latest observed minimum over 14 UTC days, including today. Days without an observation are excluded. Repeated scans replace that day's price, not add another sample
+Items absent from the latest scan have no current lowest price but keep their recent history. Missing prices show Unavailable, not zero. Displayed prices round up to whole copper
+Suffixes and bonus/modifier data remain separate. A complete item link is required, with no fallback to item ID alone
+Prices are account-wide in `JJAuctionPrices`, separate from `JJSettings`, and grouped by region, independent PvP/RP/Hardcore rules, and faction, not realm
+`/jj clear` asks for confirmation, then clears only the current market's prices and history and cancels its active scan. It keeps settings, other markets, and the scan cooldown
 
 ## Add tweaks
 

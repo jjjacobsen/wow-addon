@@ -54,8 +54,15 @@ local function CreateSettings()
     end
 
     SLASH_JJSETTINGS1 = "/jj"
-    SlashCmdList.JJSETTINGS = function()
-        window:SetShown(not window:IsShown())
+    SlashCmdList.JJSETTINGS = function(message)
+        local command = message:lower():match("^%s*(.-)%s*$")
+        if command == "" then
+            window:SetShown(not window:IsShown())
+        elseif command == "scan" or command == "clear" then
+            addon.AuctionHouseCommand(command)
+        else
+            print("wow-addon: /jj, /jj scan, /jj clear")
+        end
     end
 end
 

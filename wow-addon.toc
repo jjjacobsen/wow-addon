@@ -2,8 +2,9 @@
 ## Title: wow-addon
 ## Notes: Jonah's personal WoW tweaks
 ## Author: Jonah Jacobsen
-## SavedVariables: JJSettings
+## SavedVariables: JJSettings, JJAuctionPrices
 
 Core.lua
 HideBuffCollapseArrow.lua
 PlayerRareElitePortrait.lua
+AuctionHousePrices.lua
