@@ -1,0 +1,4 @@
+## Interface: 16001
+## Title: wow-addon
+## Notes: Jonah's personal WoW tweaks
+## Author: Jonah Jacobsen
