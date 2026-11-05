@@ -99,5 +99,6 @@ events:SetScript("OnEvent", function(self, event, loadedAddon)
         feature.apply(feature.initialEnabled)
     end
 
+    addon.InitializeTankNameplates()
     CreateSettings()
 end)

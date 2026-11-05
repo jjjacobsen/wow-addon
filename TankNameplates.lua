@@ -35,8 +35,9 @@ function addon.IsTankNameplatesEnabled()
     return enabled
 end
 
-function addon.ToggleTankNameplates()
-    enabled = not enabled
+local function SetTankNameplates(value)
+    enabled = value
+    JJTankMode = enabled
     if not hooked then
         hooksecurefunc("CompactUnitFrame_UpdateHealthColor", ColorTankNameplate)
         hooked = true
@@ -51,5 +52,13 @@ function addon.ToggleTankNameplates()
     end
 
     RefreshNameplates()
+end
+
+function addon.InitializeTankNameplates()
+    SetTankNameplates(JJTankMode == true)
+end
+
+function addon.ToggleTankNameplates()
+    SetTankNameplates(not enabled)
     print("wow-addon: Tank mode " .. (enabled and "on" or "off"))
 end

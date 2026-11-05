@@ -3,6 +3,7 @@
 ## Notes: Jonah's personal WoW tweaks
 ## Author: Jonah Jacobsen
 ## SavedVariables: JJSettings, JJAuctionPrices
+## SavedVariablesPerCharacter: JJTankMode
 
 Core.lua
 HideBuffCollapseArrow.lua
