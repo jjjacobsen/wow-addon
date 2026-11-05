@@ -8,7 +8,7 @@ end
 local function CreateSettings()
     local window = CreateFrame("Frame", "JJSettingsFrame", UIParent, "BasicFrameTemplate")
     window:Hide()
-    window:SetSize(300, 84 + #features * 32)
+    window:SetSize(300, 84 + (#features + 1) * 32)
     window:SetPoint("CENTER")
     window:SetFrameStrata("DIALOG")
     window:EnableMouse(true)
@@ -53,6 +53,18 @@ local function CreateSettings()
         end)
     end
 
+    local tank = CreateFrame("CheckButton", nil, window, "UICheckButtonTemplate")
+    tank:SetPoint("TOPLEFT", 12, -32 - #features * 32)
+    tank.Text:SetText("Tank mode")
+    tank:SetChecked(addon.IsTankNameplatesEnabled())
+
+    local function ToggleTankMode()
+        addon.ToggleTankNameplates()
+        tank:SetChecked(addon.IsTankNameplatesEnabled())
+    end
+
+    tank:SetScript("OnClick", ToggleTankMode)
+
     SLASH_JJSETTINGS1 = "/jj"
     SlashCmdList.JJSETTINGS = function(message)
         local command = message:lower():match("^%s*(.-)%s*$")
@@ -61,7 +73,7 @@ local function CreateSettings()
         elseif command == "scan" or command == "clear" then
             addon.AuctionHouseCommand(command)
         elseif command == "tank" then
-            addon.ToggleTankNameplates()
+            ToggleTankMode()
         else
             print("wow-addon: /jj, /jj scan, /jj clear, /jj tank")
         end

@@ -15,15 +15,16 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 ## Settings
 
-Use `/jj` to open the feature settings. Checkbox changes are saved between sessions and take effect after a UI reload
-Reload is enabled only when selections differ from the settings applied at startup. Click Reload to apply them
-All checkbox features start enabled. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
+Use `/jj` to open the feature settings. Except for Tank mode, checkbox changes are saved between sessions and take effect after a UI reload
+Reload is enabled only when these saved selections differ from the settings applied at startup. Click Reload to apply them
+All reload-based features start enabled. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
 
 ## Tank nameplates
 
-Use `/jj tank` to toggle tank mode immediately. Enemy nameplate health bars turn blue while you have aggro, including insecure tanking
-When you lose aggro or turn tank mode off, the bars use native colors. Tank mode starts off after login or `/reload` and has no settings checkbox
+Use the Tank mode checkbox in `/jj` or `/jj tank` to toggle tank mode immediately. The checkbox stays in sync with the command and does not enable Reload
+Enemy nameplate health bars turn blue while you have aggro, including insecure tanking
+When you lose aggro or turn tank mode off, the bars use native colors. Tank mode starts off after login or `/reload` and is not saved
 
 ## Auction house prices
 

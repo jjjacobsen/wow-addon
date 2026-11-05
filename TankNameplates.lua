@@ -31,6 +31,10 @@ end
 
 events:SetScript("OnEvent", RefreshNameplates)
 
+function addon.IsTankNameplatesEnabled()
+    return enabled
+end
+
 function addon.ToggleTankNameplates()
     enabled = not enabled
     if not hooked then
