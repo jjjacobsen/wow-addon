@@ -2,6 +2,8 @@
 ## Title: wow-addon
 ## Notes: Jonah's personal WoW tweaks
 ## Author: Jonah Jacobsen
+## SavedVariables: JJSettings
 
+Core.lua
 HideBuffCollapseArrow.lua
 PlayerRareElitePortrait.lua
