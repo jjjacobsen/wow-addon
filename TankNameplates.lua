@@ -2,9 +2,10 @@ local _, addon = ...
 local enabled = false
 local hooked = false
 local events = CreateFrame("Frame")
+local nativeColors = {}
 
-local function ColorTankNameplate(frame)
-    if not enabled or frame:IsForbidden() then
+local function ColorTankNameplate(frame, nativeUpdate)
+    if frame:IsForbidden() then
         return
     end
 
@@ -13,18 +14,30 @@ local function ColorTankNameplate(frame)
         return
     end
 
-    -- Detailed threat values can be secret on nameplates, so use threat state
-    local status = UnitThreatSituation("player", unit)
-    if status == 2 or status == 3 then
-        frame.healthBar:SetStatusBarColor(0, 0.5, 1)
+    -- Keep Blizzard's result instead of calling its refresh from addon code,
+    -- where UnitClass can return a secret key for RAID_CLASS_COLORS
+    local color = nativeColors[frame]
+    if nativeUpdate or not color then
+        color = { frame.healthBar:GetStatusBarColor() }
+        nativeColors[frame] = color
     end
+
+    -- Detailed threat values can be secret on nameplates, so use threat state
+    if enabled then
+        local status = UnitThreatSituation("player", unit)
+        if status == 2 or status == 3 then
+            frame.healthBar:SetStatusBarColor(0, 0.5, 1)
+            return
+        end
+    end
+    frame.healthBar:SetStatusBarColor(unpack(color))
 end
 
 local function RefreshNameplates()
     for _, nameplate in ipairs(C_NamePlate.GetNamePlates()) do
         local frame = nameplate.UnitFrame
         if frame and frame.unit then
-            CompactUnitFrame_UpdateHealthColor(frame)
+            ColorTankNameplate(frame)
         end
     end
 end
@@ -39,7 +52,9 @@ local function SetTankNameplates(value)
     enabled = value
     JJTankMode = enabled
     if not hooked then
-        hooksecurefunc("CompactUnitFrame_UpdateHealthColor", ColorTankNameplate)
+        hooksecurefunc("CompactUnitFrame_UpdateHealthColor", function(frame)
+            ColorTankNameplate(frame, true)
+        end)
         hooked = true
     end
 
