@@ -8,7 +8,7 @@ end
 local function CreateSettings()
     local window = CreateFrame("Frame", "JJSettingsFrame", UIParent, "BasicFrameTemplate")
     window:Hide()
-    window:SetSize(300, 84 + (#features + 1) * 32)
+    window:SetSize(300, 84 + (#features + 2) * 32)
     window:SetPoint("CENTER")
     window:SetFrameStrata("DIALOG")
     window:EnableMouse(true)
@@ -65,6 +65,26 @@ local function CreateSettings()
 
     tank:SetScript("OnClick", ToggleTankMode)
 
+    local damageMeter = CreateFrame("CheckButton", nil, window, "UICheckButtonTemplate")
+    damageMeter:SetPoint("TOPLEFT", 12, -32 - (#features + 1) * 32)
+    damageMeter.Text:SetText("Enable Damage Meter")
+    local function UpdateDamageMeter()
+        damageMeter:SetChecked(addon.IsDamageMeterEnabled())
+    end
+    UpdateDamageMeter()
+    damageMeter:SetScript("OnShow", UpdateDamageMeter)
+    damageMeter:RegisterEvent("CVAR_UPDATE")
+    damageMeter:SetScript("OnEvent", function(_, _, name)
+        if name:lower() == "damagemeterenabled" then
+            UpdateDamageMeter()
+        end
+    end)
+    local function ToggleDamageMeter()
+        addon.ToggleDamageMeter()
+        UpdateDamageMeter()
+    end
+    damageMeter:SetScript("OnClick", ToggleDamageMeter)
+
     SLASH_JJSETTINGS1 = "/jj"
     SlashCmdList.JJSETTINGS = function(message)
         local command = message:lower():match("^%s*(.-)%s*$")
@@ -74,8 +94,10 @@ local function CreateSettings()
             addon.AuctionHouseCommand(command)
         elseif command == "tank" then
             ToggleTankMode()
+        elseif command == "dmg" then
+            ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj scan, /jj clear, /jj tank")
+            print("wow-addon: /jj, /jj scan, /jj clear, /jj tank, /jj dmg")
         end
     end
 end
@@ -83,6 +105,12 @@ end
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:SetScript("OnEvent", function(self, event, loadedAddon)
+    if event == "PLAYER_LOGIN" then
+        self:UnregisterEvent(event)
+        addon.InitializeDamageMeter()
+        CreateSettings()
+        return
+    end
     if loadedAddon ~= addonName then
         return
     end
@@ -100,5 +128,5 @@ events:SetScript("OnEvent", function(self, event, loadedAddon)
     end
 
     addon.InitializeTankNameplates()
-    CreateSettings()
+    self:RegisterEvent("PLAYER_LOGIN")
 end)

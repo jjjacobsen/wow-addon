@@ -15,7 +15,7 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 ## Settings
 
-Use `/jj` to open the feature settings. Checkbox changes are saved between sessions. Except for Tank mode, they take effect after a UI reload
+Use `/jj` to open the feature settings. Checkbox changes are saved between sessions. Except for Tank mode and Enable Damage Meter, they take effect after a UI reload
 Reload is enabled only when these saved selections differ from the settings applied at startup. Click Reload to apply them
 All reload-based features start enabled. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
@@ -28,6 +28,14 @@ Turn it off and reload to restore those sounds
 Use the Tank mode checkbox in `/jj` or `/jj tank` to toggle tank mode immediately. The checkbox stays in sync with the command and does not enable Reload
 Enemy nameplate health bars turn blue while you have aggro, including insecure tanking
 When you lose aggro or turn tank mode off, the bars use native colors. Tank mode is saved per character and restored after login or `/reload`. It starts off for characters without a saved setting
+
+## Damage meter
+
+Use Enable Damage Meter in `/jj` or `/jj dmg` to toggle the built-in meter immediately, without Reload
+This changes the native Advanced Options setting, not the meter's frames. Auto Reset Damage Meter is unchanged
+The choice is saved per character and restored at login or `/reload`. Characters without a saved choice keep their current native setting
+Changes in Advanced Options also update the saved choice and the open `/jj` checkbox
+Native availability and Edit Mode visibility rules still apply. A rejected setting change reports an error and leaves the checkbox at the native value
 
 ## Auction house prices
 
