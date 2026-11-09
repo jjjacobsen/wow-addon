@@ -106,7 +106,6 @@ local function SelectView(index)
     window.level:ClearAllPoints()
     window.level:SetPoint("TOPLEFT", characterView and 258 or 426, -58)
     window.status:SetWidth(characterView and 558 or 795)
-    window.note:SetWidth(characterView and 558 or 795)
     UpdateWindow()
 end
 
@@ -233,7 +232,7 @@ UpdateWindow = function()
     if characterView then
         local count = UpdateRecommendations(rows, matching)
         window.status:SetText(not catalog and "Open your own Leatherworking to save the catalog"
-            or ("%d / 9 slots | %d items unavailable | %d outputs unresolved%s")
+            or ("%d / 9 slots | %d items unavailable | %d outputs unresolved | Missing data: -%s")
                 :format(count, missing, unresolved, lw.IsRefreshing() and " | Loading" or ""))
         return
     end
@@ -259,7 +258,7 @@ UpdateWindow = function()
     for index = #rows + 1, #window.rows do window.rows[index]:Hide() end
     window.content:SetHeight(math.max(1, #rows * ROW_HEIGHT))
     window.scroll:SetVerticalScroll(math.min(window.scroll:GetVerticalScroll(), window.scroll:GetVerticalScrollRange()))
-    window.status:SetText(("%d shown | %d recipes | %d items unavailable | %d outputs unresolved%s")
+    window.status:SetText(("%d shown | %d recipes | %d items unavailable | %d outputs unresolved | Missing data: -%s")
         :format(#rows, recipeCount, missing, unresolved, lw.IsRefreshing() and " | Loading" or ""))
     window.message:SetText(not catalog and "Open your own Leatherworking to save the catalog"
         or #rows == 0 and "No matching equipment" or "")
@@ -269,7 +268,7 @@ lw.UpdateWindow = UpdateWindow
 local function CreateWindow()
     window = CreateFrame("Frame", "JJLeatherworkingFrame", UIParent, "BasicFrameTemplate")
     window:Hide()
-    window:SetSize(890, 570)
+    window:SetSize(890, 548)
     window:SetPoint("CENTER")
     window:SetFrameStrata("DIALOG")
     window:SetToplevel(true)
@@ -381,7 +380,7 @@ local function CreateWindow()
 
     window.scroll = CreateFrame("ScrollFrame", nil, tableView, "ScrollFrameTemplate")
     window.scroll:SetPoint("TOPLEFT", 16, -154)
-    window.scroll:SetPoint("BOTTOMRIGHT", -40, 58)
+    window.scroll:SetPoint("BOTTOMRIGHT", -40, 36)
     window.scroll.ScrollBar:ClearAllPoints()
     window.scroll.ScrollBar:SetPoint("TOPLEFT", window.scroll, "TOPRIGHT", 6, 0)
     window.scroll.ScrollBar:SetPoint("BOTTOMLEFT", window.scroll, "BOTTOMRIGHT", 6, 0)
@@ -393,8 +392,6 @@ local function CreateWindow()
     window.rows = {}
     window.message = Text(window.scroll, 0, -10, 760, "GameFontHighlight")
     window.status = Text(panel, 16, -520, 795)
-    window.note = Text(panel, 16, -542, 795)
-    window.note:SetText("Delta compares this stat only, not overall gear quality. Missing data: -")
     CreateRecommendations(panel)
     window:SetScript("OnShow", function(self)
         requested = {}
