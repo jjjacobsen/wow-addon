@@ -37,6 +37,12 @@ The choice is saved per character and restored at login or `/reload`. Characters
 Changes in Advanced Options also update the saved choice and the open `/jj` checkbox
 Native availability and Edit Mode visibility rules still apply. A rejected setting change reports an error and leaves the checkbox at the native value
 
+## Flight durations
+
+Enable Flight durations in `/jj` and reload. Hover a reachable destination to see Duration below the fare, in `m:ss`, or Unknown until you complete that exact route
+Only the last completed flight is saved. The native early-landing request, death, loading screens, and logout discard the recording. Flights interrupted by `/reload` or login during a flight are not resumed
+Times are account-wide in `JJFlightDurations`, separate from settings, and grouped by region, faction, and the full directed path of flight node IDs. Routes with unresolved nodes stay Unknown. No countdown window is shown
+
 ## Auction house prices
 
 Enable Auction house prices in `/jj` and reload to use `/jj scan` and `/jj clear`
