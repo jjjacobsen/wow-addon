@@ -3,7 +3,7 @@
 ## Notes: Jonah's personal WoW tweaks
 ## Author: Jonah Jacobsen
 ## SavedVariables: JJSettings, JJAuctionPrices, JJFlightDurations
-## SavedVariablesPerCharacter: JJTankMode, JJDamageMeterEnabled
+## SavedVariablesPerCharacter: JJTankMode, JJDamageMeterEnabled, JJSavedBank
 
 Core.lua
 HideBuffCollapseArrow.lua
@@ -11,6 +11,7 @@ PlayerRareElitePortrait.lua
 TankNameplates.lua
 DamageMeter.lua
 FlightDurations.lua
+SavedBank.lua
 AuctionHousePrices.lua
 AutoAcceptSellJunkConfirmation.lua
 FilterCommonErrors.lua

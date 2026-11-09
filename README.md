@@ -57,6 +57,13 @@ Enable Flight durations in `/jj` and reload. Hover a reachable destination to se
 Only the last completed flight is saved. The native early-landing request, death, loading screens, and logout discard the recording. Flights interrupted by `/reload` or login during a flight are not resumed
 Times are account-wide in `JJFlightDurations`, separate from settings, and grouped by region, faction, and the full directed path of flight node IDs. Routes with unresolved nodes stay Unknown. No countdown window is shown
 
+## Saved Bank
+
+Click Bank in the combined backpack header or use `/jj bank` to view this character's saved bank anywhere. Visit a bank first to save its contents
+All purchased character bank bags share one read-only grid, in container and slot order, including empty slots. Scroll for more slots and hover items for tooltips. Items cannot be moved, used, or sorted here
+The character and last update time appear above the grid. Contents update only while the real bank is open and are saved per character in `JJSavedBank`. Account banks and other characters are not included
+Saved Bank starts enabled. Toggle it in `/jj`, then click Reload. Close its window with the top-right close button or Escape
+
 ## Auction house prices
 
 Enable Auction house prices in `/jj` and reload to use `/jj scan` and `/jj clear`

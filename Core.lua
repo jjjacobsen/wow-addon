@@ -92,12 +92,14 @@ local function CreateSettings()
             window:SetShown(not window:IsShown())
         elseif command == "scan" or command == "clear" then
             addon.AuctionHouseCommand(command)
+        elseif command == "bank" then
+            addon.SavedBankCommand()
         elseif command == "tank" then
             ToggleTankMode()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj scan, /jj clear, /jj tank, /jj dmg")
+            print("wow-addon: /jj, /jj bank, /jj scan, /jj clear, /jj tank, /jj dmg")
         end
     end
 end
