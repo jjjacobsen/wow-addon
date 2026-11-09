@@ -18,4 +18,5 @@ AuctionHousePrices.lua
 AutoAcceptSellJunkConfirmation.lua
 FilterCommonErrors.lua
 FilterTradeChat.lua
+ChatPlayerLevels.lua
 MuteSpellFailureSounds.lua
