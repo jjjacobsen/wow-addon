@@ -217,6 +217,16 @@ local function AddPrices(tooltip, data)
     if data ~= tooltip:GetPrimaryTooltipData() then
         return
     end
+    local location = data.guid and C_Item.GetItemLocation(data.guid)
+    if location and C_Item.IsBound(location) then
+        return
+    end
+    for _, line in ipairs(data.lines) do
+        if line.type == Enum.TooltipDataLineType.ItemBinding
+            and line.bonding == Enum.TooltipDataItemBinding.Soulbound then
+            return
+        end
+    end
     local _, link = TooltipUtil.GetDisplayedItem(tooltip)
     local key = ItemKey(link)
     local market = JJAuctionPrices.markets[MarketKey()]
@@ -242,7 +252,6 @@ local function AddPrices(tooltip, data)
     end
     tooltip:AddDoubleLine("AH lowest / unit", Money(lowest), 1, 0.82, 0, 1, 1, 1)
     tooltip:AddDoubleLine("AH median (14d) / unit", Money(median), 1, 0.82, 0, 1, 1, 1)
-    local location = data.guid and C_Item.GetItemLocation(data.guid)
     local quantity = location and C_Item.GetStackCount(location)
     if quantity and quantity > 1 then
         tooltip:AddDoubleLine("AH lowest ×" .. quantity, Money(lowest and lowest * quantity), 1, 0.82, 0, 1, 1, 1)

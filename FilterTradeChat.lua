@@ -1,7 +1,7 @@
 local _, addon = ...
 
 -- ChatChannels.db2 IDs, not local chat numbers
-local tradeChannels = { [2] = true, [42] = true } -- Trade, Trade (Services)
+local tradeChannels = { [1] = true, [2] = true, [42] = true } -- General, Trade, Trade (Services)
 local keywords = {
     pst = true,
     recruiting = true,
@@ -15,7 +15,10 @@ local keywords = {
     summoning = true,
     wtt = true,
     lockbox = true,
-    enchant = true,
+    selling = true,
+    l4w = true,
+    mats = true,
+    ah = true,
 }
 local guildLinkTypes = {
     clubFinder = true,
@@ -35,12 +38,13 @@ local function FilterMessage(_, event, message, _, _, _, _, _, zoneChannelID)
     end
 
     text = text:lower()
-    if text:find("<[^<>]+>") or text:find("%f[%w_]looking%s+for%f[^%w_]") then
+    if text:find("twitch.tv", 1, true) or text:find("<[^<>]+>")
+        or text:find("%f[%w_]looking%s+for%f[^%w_]") then
         return true
     end
     local words = {}
     for word in text:gmatch("[%w_]+") do
-        if keywords[word] or word == "lfm" or word:match("^lf%d+m$") then
+        if keywords[word] or word:match("^enchant") or word == "lfm" or word:match("^lf%d+m$") then
             return true
         end
         words[word] = true

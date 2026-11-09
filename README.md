@@ -26,12 +26,12 @@ Turn it off and reload to restore those sounds
 ## Trade chat filter
 
 Filter Trade chat starts enabled. Toggle it in `/jj`, then click Reload
-Filters native Trade, Trade (Services), and yells, regardless of channel number or language. Other channels, including General and Trade (Local), are unchanged
+Filters native General, Trade, Trade (Services), and yells, regardless of channel number or language. Other channels, including Trade (Local), are unchanged
 Messages are hidden for any of these rules, after removing link data, colors, textures, and atlases while keeping visible link text
 
 - All alphabetic characters are uppercase, with at least one letter. Numbers and punctuation alone do not match
-- Whole words `PST`, `recruiting`, `LF`, `LFG`, `WTS`, `LFW`, `WTB`, `WTT`, `lockbox`, `enchant`, `summon`, `summons`, or `summoning`, case-insensitive. Also matches `LFM` and `LF<number>M`, such as `LF1M`, but not `self`
-- The phrase `looking for`, case-insensitive
+- Whole words `PST`, `recruiting`, `LF`, `LFG`, `WTS`, `LFW`, `WTB`, `WTT`, `lockbox`, `selling`, `L4W`, `mats`, `AH`, `summon`, `summons`, or `summoning`, case-insensitive. Also matches `LFM` and `LF<number>M`, such as `LF1M`, but not `self`
+- The phrase `looking for`, `twitch.tv`, or words starting with `enchant`, case-insensitive
 - Text enclosed in angle brackets, such as `<Guild Name>`
 - The word `guild` or a native guild finder/community link, together with `recruitment`, `recruits`, or `seeking`, case-insensitive. A guild mention or link alone does not match
 
@@ -84,6 +84,7 @@ Open an auction house in your faction's capital, then use `/jj scan`. Keep it op
 Supported capitals are Stormwind, Ironforge, Darnassus, Orgrimmar, Thunder Bluff, and Undercity. Neutral auction houses and all other locations are not supported
 Scans use the full auction list, with a local account-wide 15-minute cooldown. The server can also throttle scans, including scans from other addons. A timeout or cancelled scan keeps the previous prices
 
+Soulbound items omit AH rows when their binding is available from the item or tooltip
 Item tooltips show the latest scan's lowest buyout per unit and the median of each day's latest observed minimum over 14 UTC days, including today. Days without an observation are excluded. Repeated scans replace that day's price, not add another sample
 Items absent from the latest scan have no current lowest price but keep their recent history. Missing prices show Unavailable, not zero. Displayed prices round up to whole copper
 Suffixes and bonus/modifier data remain separate. A complete item link is required, with no fallback to item ID alone
