@@ -11,6 +11,7 @@ PlayerRareElitePortrait.lua
 TankNameplates.lua
 DamageMeter.lua
 FlightDurations.lua
+Waypoints.lua
 SavedBank.lua
 FreeSlot.lua
 AuctionHousePrices.lua
