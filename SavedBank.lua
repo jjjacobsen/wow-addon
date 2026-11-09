@@ -1,5 +1,5 @@
 local _, addon = ...
-local enabled, bankOpen, captureQueued, window, bankButton
+local enabled, bankOpen, captureQueued, window
 local events = CreateFrame("Frame")
 local columns, slotSize, spacing = 8, 37, 5
 local stride = slotSize + spacing
@@ -179,34 +179,12 @@ local function QueueCapture()
     end)
 end
 
-local function InstallBankButton()
-    local bags = ContainerFrameCombinedBags
-    if bankButton or not bags then
-        return
-    end
-    bankButton = CreateFrame("Button", nil, bags, "UIPanelButtonTemplate")
-    bankButton:SetSize(58, 22)
-    bankButton:SetPoint("TOPRIGHT", -45, -35)
-    bankButton:SetText("Bank")
-    bankButton:SetScript("OnClick", addon.SavedBankCommand)
-    -- Reserve space on the search row, to the left of the native sort button.
-    hooksecurefunc(bags, "SetSearchBoxPoint", function(_, searchBox)
-        searchBox:ClearAllPoints()
-        searchBox:SetPoint("TOPLEFT", bags, "TOPLEFT", 62, -37)
-        searchBox:SetPoint("TOPRIGHT", bankButton, "TOPLEFT", -8, -2)
-    end)
-    if bags:IsShown() then
-        bags:UpdateSearchBox()
-    end
-    events:UnregisterEvent("ADDON_LOADED")
-end
-
 addon.RegisterFeature("savedBank", "Saved Bank", function(value)
     enabled = value
     if not enabled then
         return
     end
-    events:RegisterEvent("ADDON_LOADED")
+    addon.AddBagHeaderButton("Bank", 58, addon.SavedBankCommand)
     events:RegisterEvent("BANKFRAME_OPENED")
     events:RegisterEvent("BANKFRAME_CLOSED")
     events:RegisterEvent("BAG_UPDATE_DELAYED")
@@ -215,9 +193,7 @@ addon.RegisterFeature("savedBank", "Saved Bank", function(value)
     events:RegisterEvent("BANK_TABS_CHANGED")
     events:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     events:SetScript("OnEvent", function(_, event, bankType)
-        if event == "ADDON_LOADED" then
-            InstallBankButton()
-        elseif event == "BANKFRAME_CLOSED" then
+        if event == "BANKFRAME_CLOSED" then
             bankOpen = false
         else
             if event == "BANKFRAME_OPENED" then
@@ -228,5 +204,4 @@ addon.RegisterFeature("savedBank", "Saved Bank", function(value)
             QueueCapture()
         end
     end)
-    InstallBankButton()
 end)

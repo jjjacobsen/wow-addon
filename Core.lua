@@ -1,5 +1,48 @@
 local addonName, addon = ...
 local features = {}
+local bagHeaderButtons = {}
+local bagHeaderEvents = CreateFrame("Frame")
+
+local function InstallBagHeaderButtons()
+    local bags = ContainerFrameCombinedBags
+    if not bags then
+        bagHeaderEvents:RegisterEvent("ADDON_LOADED")
+        return
+    end
+    for index, entry in ipairs(bagHeaderButtons) do
+        if not entry.button then
+            local button = CreateFrame("Button", nil, bags, "UIPanelButtonTemplate")
+            button:SetSize(entry.width, 22)
+            if index == 1 then
+                button:SetPoint("TOPRIGHT", -45, -35)
+            else
+                button:SetPoint("RIGHT", bagHeaderButtons[index - 1].button, "LEFT", -4, 0)
+            end
+            button:SetText(entry.text)
+            button:SetScript("OnClick", entry.onClick)
+            entry.button = button
+        end
+    end
+    if not bagHeaderEvents.hooked then
+        bagHeaderEvents.hooked = true
+        hooksecurefunc(bags, "SetSearchBoxPoint", function(_, searchBox)
+            searchBox:ClearAllPoints()
+            searchBox:SetPoint("TOPLEFT", bags, "TOPLEFT", 62, -37)
+            searchBox:SetPoint("TOPRIGHT", bagHeaderButtons[#bagHeaderButtons].button, "TOPLEFT", -8, -2)
+        end)
+    end
+    if bags:IsShown() then
+        bags:UpdateSearchBox()
+    end
+    bagHeaderEvents:UnregisterEvent("ADDON_LOADED")
+end
+
+bagHeaderEvents:SetScript("OnEvent", InstallBagHeaderButtons)
+
+function addon.AddBagHeaderButton(text, width, onClick)
+    table.insert(bagHeaderButtons, { text = text, width = width, onClick = onClick })
+    InstallBagHeaderButtons()
+end
 
 function addon.RegisterFeature(key, label, apply)
     table.insert(features, { key = key, label = label, apply = apply })
@@ -94,12 +137,14 @@ local function CreateSettings()
             addon.AuctionHouseCommand(command)
         elseif command == "bank" then
             addon.SavedBankCommand()
+        elseif command == "free" then
+            addon.FreeSlotCommand()
         elseif command == "tank" then
             ToggleTankMode()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj bank, /jj scan, /jj clear, /jj tank, /jj dmg")
+            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg")
         end
     end
 end
