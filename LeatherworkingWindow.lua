@@ -6,7 +6,13 @@ local ROW_HEIGHT = 26
 local UpdateWindow
 
 local function StatValue(stats)
-    if stats then return stats[JJLWCharacter.stat] or 0 end
+    if not stats then return nil end
+    local stat = JJLWCharacter.stat
+    local value = stats[stat] or 0
+    if stat == "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT" or stat == "ITEM_MOD_SPELL_HEALING_DONE_SHORT" then
+        value = value + (stats.ITEM_MOD_SPELL_POWER_SHORT or 0)
+    end
+    return value
 end
 
 local function EquippedValue(slot)

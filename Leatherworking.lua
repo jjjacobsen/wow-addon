@@ -22,7 +22,6 @@ lw.stats = {
     { "Stamina", "ITEM_MOD_STAMINA_SHORT" },
     { "Spirit", "ITEM_MOD_SPIRIT_SHORT" },
     { "Armor", "RESISTANCE0_NAME" },
-    { "Spell power", "ITEM_MOD_SPELL_POWER_SHORT" },
     { "Spell damage", "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT" },
     { "Spell healing", "ITEM_MOD_SPELL_HEALING_DONE_SHORT" },
     { "Nature damage", "ITEM_MOD_NATURE_DAMAGE_DONE_SHORT" },
@@ -155,6 +154,9 @@ addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
     enabled = value
     if not enabled then return end
     JJLWCharacter = JJLWCharacter or { stat = "ITEM_MOD_INTELLECT_SHORT", slot = 0, learned = {} }
+    if JJLWCharacter.stat == "ITEM_MOD_SPELL_POWER_SHORT" then
+        JJLWCharacter.stat = "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"
+    end
     events:RegisterEvent("TRADE_SKILL_SHOW")
     events:RegisterEvent("TRADE_SKILL_CLOSE")
     events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGED")
