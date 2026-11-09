@@ -27,7 +27,11 @@ addon.RegisterFeature("filterCommonErrors", "Filter common errors", function(ena
         "ERR_SPELL_OUT_OF_RANGE",
         "SPELL_FAILED_OUT_OF_RANGE",
 
+        -- Movement
+        "SPELL_FAILED_MOVING",
+
         -- Invalid target
+        "ERR_GENERIC_NO_TARGET",
         "ERR_INVALID_ATTACK_TARGET",
         "ERR_NO_ATTACK_TARGET",
         "ERR_GENERIC_NO_VALID_TARGETS",

@@ -30,8 +30,9 @@ Filters native Trade, Trade (Services), and yells, regardless of channel number 
 Messages are hidden for any of these rules, after removing link data, colors, textures, and atlases while keeping visible link text
 
 - All alphabetic characters are uppercase, with at least one letter. Numbers and punctuation alone do not match
-- Whole words `PST`, `recruiting`, `LF`, `LFG`, `WTS`, `LFW`, `WTB`, `summon`, `summons`, or `summoning`, case-insensitive. Also matches `LFM` and `LF<number>M`, such as `LF1M`, but not `self`
+- Whole words `PST`, `recruiting`, `LF`, `LFG`, `WTS`, `LFW`, `WTB`, `WTT`, `lockbox`, `enchant`, `summon`, `summons`, or `summoning`, case-insensitive. Also matches `LFM` and `LF<number>M`, such as `LF1M`, but not `self`
 - The phrase `looking for`, case-insensitive
+- Text enclosed in angle brackets, such as `<Guild Name>`
 - The word `guild` or a native guild finder/community link, together with `recruitment`, `recruits`, or `seeking`, case-insensitive. A guild mention or link alone does not match
 
 These rules are fixed. Native chat privacy restrictions can stop filtering while chat messages are secret

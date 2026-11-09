@@ -13,6 +13,9 @@ local keywords = {
     summon = true,
     summons = true,
     summoning = true,
+    wtt = true,
+    lockbox = true,
+    enchant = true,
 }
 local guildLinkTypes = {
     clubFinder = true,
@@ -32,7 +35,7 @@ local function FilterMessage(_, event, message, _, _, _, _, _, zoneChannelID)
     end
 
     text = text:lower()
-    if text:find("%f[%w_]looking%s+for%f[^%w_]") then
+    if text:find("<[^<>]+>") or text:find("%f[%w_]looking%s+for%f[^%w_]") then
         return true
     end
     local words = {}
