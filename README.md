@@ -91,6 +91,18 @@ Suffixes and bonus/modifier data remain separate. A complete item link is requir
 Prices are account-wide in `JJAuctionPrices`, separate from `JJSettings`, and grouped by region, independent PvP/RP/Hardcore rules, and faction, not realm
 `/jj clear` asks for confirmation, then clears only the current market's prices and history and cancels its active scan. It keeps settings, other markets, and the scan cooldown
 
+## Leatherworking gear
+
+Run `/reload` after installing. Use `/jj lw` to open the gear browser
+Open your own Leatherworking once to save its learned and unlearned native recipes. Linked, guild, and NPC profession views do not update the catalog. Later, browse anywhere without the profession window open
+Choose a stat and slot. Max equip level follows your character level until you edit it. Auto restores that behavior. These choices and Upgrades only are saved per character
+Rows sort by the selected stat, highest first, and show links, armor type, equip level, stat value, equipped-slot difference, and learned status. Hover for native tooltips and, outside combat, equipment comparisons. Modified clicks use native link actions
+Upgrades only means a positive difference in the selected stat, not an overall upgrade. Stats are not weighted or combined. Spell power, damage, healing, and school damage stay separate. Armor includes native bonus armor. Leather and mail both appear, without class usability filtering
+Missing stats or equipped data show `-`, not zero. An empty equipped slot counts as zero. Unavailable items and unresolved outputs remain counted even when their slot is unknown
+Click Refresh with your own Leatherworking open to update recipes and retry missing items. Allow up to 60 seconds. Only native default outputs are used, without quality or reagent variants, profession-rank filtering, inferred crafting requirements, or external data
+Catalog data is account-wide in `JJLWCatalog`. Options and learned status are per character in `JJLWCharacter`. Learned status is Unknown until that character opens their own Leatherworking
+Leatherworking gear starts enabled. Toggle it in `/jj`, then click Reload. Close the browser with its top-right close button or Escape
+
 ## Add tweaks
 
 Add each feature as a separate Lua file and list its path after `Core.lua` in `wow-addon.toc`
