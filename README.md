@@ -23,6 +23,19 @@ Close the window with Close, its top-right close button, or Escape. Pending sele
 Mute spell failure sounds mutes the five spell fizzle files for all failures, separate from Filter common errors. It does not mute normal spell sounds or change the error speech setting
 Turn it off and reload to restore those sounds
 
+## Trade chat filter
+
+Filter Trade chat starts enabled. Toggle it in `/jj`, then click Reload
+Filters native Trade, Trade (Services), and yells, regardless of channel number or language. Other channels, including General and Trade (Local), are unchanged
+Messages are hidden for any of these rules, after removing link data, colors, textures, and atlases while keeping visible link text
+
+- All alphabetic characters are uppercase, with at least one letter. Numbers and punctuation alone do not match
+- Whole words `PST`, `recruiting`, `LF`, `LFG`, `WTS`, `LFW`, `WTB`, `summon`, `summons`, or `summoning`, case-insensitive. Also matches `LFM` and `LF<number>M`, such as `LF1M`, but not `self`
+- The phrase `looking for`, case-insensitive
+- The word `guild` or a native guild finder/community link, together with `recruitment`, `recruits`, or `seeking`, case-insensitive. A guild mention or link alone does not match
+
+These rules are fixed. Native chat privacy restrictions can stop filtering while chat messages are secret
+
 ## Tank nameplates
 
 Use the Tank mode checkbox in `/jj` or `/jj tank` to toggle tank mode immediately. The checkbox stays in sync with the command and does not enable Reload
