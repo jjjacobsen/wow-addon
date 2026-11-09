@@ -37,6 +37,73 @@ local function Text(parent, x, y, width, template)
     return text
 end
 
+local function ShowEquippedTooltip(button)
+    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    ItemUtil.DisplayEquipSlotTooltip(button, GameTooltip, button.slot, true)
+    GameTooltip:Show()
+end
+
+local function RefreshModel()
+    window.model:SetUnit("player", false, true)
+    window.model:Dress()
+end
+
+local function CreateCharacterView()
+    local character = CreateFrame("Frame", nil, window)
+    character:SetPoint("TOPLEFT", 16, -34)
+    character:SetSize(284, 480)
+    window.character = character
+    Text(character, 0, 0, 284, "GameFontNormalLarge"):SetText(UnitName("player"))
+
+    window.model = CreateFrame("DressUpModel", nil, character)
+    window.model:SetPoint("TOPLEFT", 32, -24)
+    window.model:SetSize(220, 440)
+    window.model:SetAutoDress(true)
+    window.model:EnableMouse(false)
+    window.model:SetScript("OnShow", RefreshModel)
+
+    local slots = {
+        { "HeadSlot", 0, -48 }, { "ShoulderSlot", 0, -112 },
+        { "BackSlot", 0, -176 }, { "ChestSlot", 0, -240 },
+        { "WristSlot", 0, -304 }, { "HandsSlot", 248, -48 },
+        { "WaistSlot", 248, -112 }, { "LegsSlot", 248, -176 },
+        { "FeetSlot", 248, -240 },
+    }
+    window.equipment = {}
+    for _, slot in ipairs(slots) do
+        local button = CreateFrame("CheckButton", nil, character)
+        button:SetSize(36, 36)
+        button:SetPoint("TOPLEFT", slot[2], slot[3])
+        button.slot, button.emptyTexture = C_PaperDollInfo.GetInventorySlotInfo(slot[1])
+        button.icon = button:CreateTexture(nil, "ARTWORK")
+        button.icon:SetAllPoints()
+        local border = button:CreateTexture(nil, "OVERLAY")
+        border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+        border:SetPoint("CENTER")
+        border:SetSize(64, 64)
+        button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+        button:SetCheckedTexture("Interface\\Buttons\\CheckButtonHilight")
+        button:GetCheckedTexture():SetBlendMode("ADD")
+        button:SetScript("OnEnter", ShowEquippedTooltip)
+        button:SetScript("OnLeave", GameTooltip_Hide)
+        button:SetScript("OnHide", function(self)
+            if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
+        end)
+        button:SetScript("OnClick", function(self)
+            JJLWCharacter.slot = JJLWCharacter.slot == self.slot and 0 or self.slot
+            UpdateWindow()
+        end)
+        table.insert(window.equipment, button)
+    end
+end
+
+local function SelectView(index)
+    PanelTemplates_SetTab(window, index)
+    window.character:SetShown(index == 1)
+    window:SetWidth(index == 1 and 1130 or 830)
+    UpdateWindow()
+end
+
 local function MakeRow(index)
     local row = CreateFrame("Button", nil, window.content)
     row:SetSize(770, ROW_HEIGHT)
@@ -63,7 +130,12 @@ UpdateWindow = function()
     if not window or not window:IsShown() then return end
     local options, catalog = JJLWCharacter, JJLWCatalog
     if not window.level:HasFocus() then window.level:SetText(options.maxLevel or currentLevel) end
-    window.refresh:SetEnabled(not lw.IsRefreshing())
+    window.slot:Update()
+    for _, button in ipairs(window.equipment) do
+        button.icon:SetTexture(GetInventoryItemTexture("player", button.slot) or button.emptyTexture)
+        button:SetChecked(options.slot == button.slot)
+        if button:IsShown() and button:IsMouseOver() then ShowEquippedTooltip(button) end
+    end
     local rows, baselines = {}, {}
     for _, slot in ipairs(lw.slots) do
         if slot[2] ~= 0 then baselines[slot[2]] = EquippedValue(slot[2]) end
@@ -133,7 +205,7 @@ lw.UpdateWindow = UpdateWindow
 local function CreateWindow()
     window = CreateFrame("Frame", "JJLeatherworkingFrame", UIParent, "BasicFrameTemplate")
     window:Hide()
-    window:SetSize(830, 570)
+    window:SetSize(1130, 570)
     window:SetPoint("CENTER")
     window:SetFrameStrata("DIALOG")
     window:SetToplevel(true)
@@ -146,8 +218,26 @@ local function CreateWindow()
     window.TitleText:SetText("Leatherworking gear")
     table.insert(UISpecialFrames, "JJLeatherworkingFrame")
 
-    Text(window, 16, -34, 220, "GameFontNormal"):SetText("Stat")
-    local stat = CreateFrame("DropdownButton", nil, window, "WowStyle1DropdownTemplate")
+    for index, label in ipairs({ "Character", "Table" }) do
+        local tab = CreateFrame("Button", nil, window, "PanelTabButtonTemplate")
+        tab:SetID(index)
+        tab:SetText(label)
+        if index == 1 then
+            tab:SetPoint("TOPLEFT", window, "BOTTOMLEFT", 12, 0)
+        else
+            tab:SetPoint("TOPLEFT", window.Tabs[index - 1], "TOPRIGHT", 5, 0)
+        end
+        tab:SetScript("OnClick", function(self) SelectView(self:GetID()) end)
+    end
+    window.numTabs = 2
+    CreateCharacterView()
+    local panel = CreateFrame("Frame", nil, window)
+    panel:SetPoint("TOPRIGHT")
+    panel:SetPoint("BOTTOMRIGHT")
+    panel:SetWidth(830)
+
+    Text(panel, 16, -34, 220, "GameFontNormal"):SetText("Stat")
+    local stat = CreateFrame("DropdownButton", nil, panel, "WowStyle1DropdownTemplate")
     stat:SetPoint("TOPLEFT", 16, -57)
     stat:SetWidth(220)
     stat:SetupMenu(function(_, root)
@@ -159,8 +249,9 @@ local function CreateWindow()
             end)
         end
     end)
-    Text(window, 252, -34, 150, "GameFontNormal"):SetText("Slot")
-    local slot = CreateFrame("DropdownButton", nil, window, "WowStyle1DropdownTemplate")
+    Text(panel, 252, -34, 150, "GameFontNormal"):SetText("Slot")
+    local slot = CreateFrame("DropdownButton", nil, panel, "WowStyle1DropdownTemplate")
+    window.slot = slot
     slot:SetPoint("TOPLEFT", 252, -57)
     slot:SetWidth(150)
     slot:SetupMenu(function(_, root)
@@ -172,8 +263,8 @@ local function CreateWindow()
         end
     end)
 
-    Text(window, 420, -34, 160, "GameFontNormal"):SetText("Max equip level")
-    window.level = CreateFrame("EditBox", nil, window, "InputBoxTemplate")
+    Text(panel, 420, -34, 160, "GameFontNormal"):SetText("Max equip level")
+    window.level = CreateFrame("EditBox", nil, panel, "InputBoxTemplate")
     window.level:SetPoint("TOPLEFT", 426, -58)
     window.level:SetSize(54, 24)
     window.level:SetAutoFocus(false)
@@ -193,7 +284,7 @@ local function CreateWindow()
         self.edited = false
         UpdateWindow()
     end)
-    local auto = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+    local auto = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     auto:SetPoint("LEFT", window.level, "RIGHT", 6, 0)
     auto:SetSize(48, 24)
     auto:SetText("Auto")
@@ -203,16 +294,7 @@ local function CreateWindow()
         UpdateWindow()
     end)
 
-    window.refresh = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
-    window.refresh:SetPoint("TOPRIGHT", -16, -57)
-    window.refresh:SetSize(90, 24)
-    window.refresh:SetText("Refresh")
-    window.refresh:SetScript("OnClick", function()
-        if not lw.Refresh() then
-            print("wow-addon: Open your own Leatherworking and wait for its recipes, then click Refresh")
-        end
-    end)
-    local upgrades = CreateFrame("CheckButton", nil, window, "UICheckButtonTemplate")
+    local upgrades = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
     upgrades:SetPoint("TOPLEFT", 12, -92)
     upgrades.Text:SetText("Upgrades only (selected stat)")
     upgrades:SetChecked(JJLWCharacter.upgradesOnly)
@@ -220,14 +302,14 @@ local function CreateWindow()
         JJLWCharacter.upgradesOnly = self:GetChecked()
         UpdateWindow()
     end)
-    Text(window, 16, -129, 290, "GameFontNormal"):SetText("Item")
-    Text(window, 312, -129, 85, "GameFontNormal"):SetText("Armor type")
-    Text(window, 403, -129, 52, "GameFontNormal"):SetText("Level")
-    Text(window, 461, -129, 95, "GameFontNormal"):SetText("Stat value")
-    Text(window, 562, -129, 100, "GameFontNormal"):SetText("vs equipped")
-    Text(window, 668, -129, 110, "GameFontNormal"):SetText("Recipe")
+    Text(panel, 16, -129, 290, "GameFontNormal"):SetText("Item")
+    Text(panel, 312, -129, 85, "GameFontNormal"):SetText("Armor type")
+    Text(panel, 403, -129, 52, "GameFontNormal"):SetText("Level")
+    Text(panel, 461, -129, 95, "GameFontNormal"):SetText("Stat value")
+    Text(panel, 562, -129, 100, "GameFontNormal"):SetText("vs equipped")
+    Text(panel, 668, -129, 110, "GameFontNormal"):SetText("Recipe")
 
-    window.scroll = CreateFrame("ScrollFrame", nil, window, "ScrollFrameTemplate")
+    window.scroll = CreateFrame("ScrollFrame", nil, panel, "ScrollFrameTemplate")
     window.scroll:SetPoint("TOPLEFT", 16, -154)
     window.scroll:SetPoint("BOTTOMRIGHT", -40, 58)
     window.scroll.ScrollBar:ClearAllPoints()
@@ -240,19 +322,22 @@ local function CreateWindow()
     window.scroll:SetScrollChild(window.content)
     window.rows = {}
     window.message = Text(window.scroll, 0, -10, 760, "GameFontHighlight")
-    window.status = Text(window, 16, -520, 795)
-    Text(window, 16, -542, 795):SetText("Delta compares this stat only, not overall gear quality. Missing data: -")
+    window.status = Text(panel, 16, -520, 795)
+    Text(panel, 16, -542, 795):SetText("Delta compares this stat only, not overall gear quality. Missing data: -")
     window:SetScript("OnShow", function(self)
         requested = {}
         currentLevel = UnitLevel("player")
         self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         self:RegisterEvent("PLAYER_LEVEL_UP")
         self:RegisterEvent("ITEM_DATA_LOAD_RESULT")
-        UpdateWindow()
+        SelectView(1)
     end)
     window:SetScript("OnHide", function(self) self:UnregisterAllEvents() end)
     window:SetScript("OnEvent", function(_, event, level)
-        if event == "PLAYER_EQUIPMENT_CHANGED" then requested = {} end
+        if event == "PLAYER_EQUIPMENT_CHANGED" then
+            requested = {}
+            if window.model:IsShown() then RefreshModel() end
+        end
         if event == "PLAYER_LEVEL_UP" then currentLevel = level end
         if not window.updateQueued then
             window.updateQueued = true

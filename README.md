@@ -94,13 +94,15 @@ Prices are account-wide in `JJAuctionPrices`, separate from `JJSettings`, and gr
 ## Leatherworking gear
 
 Run `/reload` after installing. Use `/jj lw` to open the gear browser
-Open your own Leatherworking once to save its learned and unlearned native recipes. Linked, guild, and NPC profession views do not update the catalog. Later, browse anywhere without the profession window open
+Character opens first, with your native character model and supported equipped armor slots on the left, filters and results on the right. Click a gear slot to filter recipes, or click it again for all slots. Hover for the native equipped-item tooltip. These icons cannot equip, use, or move items
+Table is the second tab and keeps the full table without the character panel. Both tabs share the same filters and catalog
+Open your own Leatherworking to save its learned and unlearned native recipes automatically. Reopen it to update recipes or retry missing items. Linked, guild, and NPC profession views do not update the catalog. Later, browse anywhere without the profession window open
 Choose a stat and slot. Max equip level follows your character level until you edit it. Auto restores that behavior. These choices and Upgrades only are saved per character
 Rows sort by the selected stat, highest first, and show links, armor type, equip level, stat value, equipped-slot difference, and learned status. Hover for native tooltips and, outside combat, equipment comparisons. Modified clicks use native link actions
 Upgrades only means a positive difference in the selected stat, not an overall upgrade. Stats are not weighted or combined. Spell power, damage, healing, and school damage stay separate. Armor includes native bonus armor. Leather and mail both appear, without class usability filtering
 Missing stats or equipped data show `-`, not zero. An empty equipped slot counts as zero. Unavailable items and unresolved outputs remain counted even when their slot is unknown
-Click Refresh with your own Leatherworking open to update recipes and retry missing items. Allow up to 60 seconds. Only native default outputs are used, without quality or reagent variants, profession-rank filtering, inferred crafting requirements, or external data
-Catalog data is account-wide in `JJLWCatalog`. Options and learned status are per character in `JJLWCharacter`. Learned status is Unknown until that character opens their own Leatherworking
+Allow up to 60 seconds for item data to load. Only native default outputs are used, without quality or reagent variants, profession-rank filtering, inferred crafting requirements, or external data
+Catalog data is account-wide in `JJLWCatalog`, so characters without Leatherworking can browse after a leatherworker on the same account saves the catalog. Another account needs its own catalog. Options and learned status are per character in `JJLWCharacter`. Learned status is Unknown until that character opens their own Leatherworking
 Leatherworking gear starts enabled. Toggle it in `/jj`, then click Reload. Close the browser with its top-right close button or Escape
 
 ## Add tweaks
