@@ -71,7 +71,7 @@ local function CreateCharacterView()
     }
     window.equipment = {}
     for _, slot in ipairs(slots) do
-        local button = CreateFrame("CheckButton", nil, character)
+        local button = CreateFrame("Button", nil, character)
         button:SetSize(36, 36)
         button:SetPoint("TOPLEFT", slot[2], slot[3])
         button.slot, button.emptyTexture = C_PaperDollInfo.GetInventorySlotInfo(slot[1])
@@ -82,16 +82,10 @@ local function CreateCharacterView()
         border:SetPoint("CENTER")
         border:SetSize(64, 64)
         button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
-        button:SetCheckedTexture("Interface\\Buttons\\CheckButtonHilight")
-        button:GetCheckedTexture():SetBlendMode("ADD")
         button:SetScript("OnEnter", ShowEquippedTooltip)
         button:SetScript("OnLeave", GameTooltip_Hide)
         button:SetScript("OnHide", function(self)
             if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
-        end)
-        button:SetScript("OnClick", function(self)
-            JJLWCharacter.slot = JJLWCharacter.slot == self.slot and 0 or self.slot
-            UpdateWindow()
         end)
         table.insert(window.equipment, button)
     end
@@ -99,9 +93,71 @@ end
 
 local function SelectView(index)
     PanelTemplates_SetTab(window, index)
-    window.character:SetShown(index == 1)
-    window:SetWidth(index == 1 and 1130 or 830)
+    local characterView = index == 1
+    window.character:SetShown(characterView)
+    window.recommendations:SetShown(characterView)
+    window.table:SetShown(not characterView)
+    window.slot:SetShown(not characterView)
+    window.slotLabel:SetShown(not characterView)
+    window.panel:SetWidth(characterView and 590 or 830)
+    window:SetWidth(characterView and 890 or 830)
+    window.levelLabel:ClearAllPoints()
+    window.levelLabel:SetPoint("TOPLEFT", characterView and 252 or 420, -34)
+    window.level:ClearAllPoints()
+    window.level:SetPoint("TOPLEFT", characterView and 258 or 426, -58)
+    window.status:SetWidth(characterView and 558 or 795)
+    window.note:SetWidth(characterView and 558 or 795)
     UpdateWindow()
+end
+
+local function CreateRecommendations(panel)
+    local recommendations = CreateFrame("Frame", nil, panel)
+    recommendations:SetAllPoints()
+    window.recommendations = recommendations
+    Text(recommendations, 16, -129, 430, "GameFontNormal"):SetText("Top result per slot")
+    Text(recommendations, 464, -129, 94, "GameFontNormal"):SetText("Stat delta")
+    window.recommendationRows = {}
+    for _, slot in ipairs(lw.slots) do
+        if slot[2] ~= 0 then
+            local row = CreateFrame("Button", nil, recommendations)
+            row:SetPoint("TOPLEFT", 16, -154 - #window.recommendationRows * 40)
+            row:SetSize(558, 40)
+            row.slot = slot[2]
+            Text(row, 0, -8, 84, "GameFontNormal"):SetText(slot[1])
+            row.item = Text(row, 90, -8, 350)
+            row.delta = Text(row, 448, -8, 94)
+            row:SetScript("OnEnter", function(self)
+                if self.link then ShowTooltip(self) end
+            end)
+            row:SetScript("OnLeave", GameTooltip_Hide)
+            row:SetScript("OnHide", function(self)
+                if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
+            end)
+            table.insert(window.recommendationRows, row)
+        end
+    end
+end
+
+local function UpdateRecommendations(rows, matching)
+    local best = {}
+    -- Each slot has a constant baseline, so highest stat also gives the largest delta.
+    for _, entry in ipairs(rows) do
+        if not best[entry.item.slot] then best[entry.item.slot] = entry end
+    end
+    local count = 0
+    for _, row in ipairs(window.recommendationRows) do
+        local entry = best[row.slot]
+        local delta = entry and entry.delta
+        row.link = entry and entry.item.link
+        row.item:SetText(row.link or (matching[row.slot] and "No confirmed upgrade" or "No matching item"))
+        row.delta:SetText(delta == nil and "-" or (delta > 0 and "+" or "") .. tostring(delta))
+        row.delta:SetTextColor(delta and delta > 0 and 0.2 or 1, delta and delta < 0 and 0.2 or 1, delta and delta ~= 0 and 0.2 or 1)
+        if entry then count = count + 1 end
+        if row:IsMouseOver() then
+            if row.link then ShowTooltip(row) else GameTooltip:Hide() end
+        end
+    end
+    return count
 end
 
 local function MakeRow(index)
@@ -129,14 +185,14 @@ end
 UpdateWindow = function()
     if not window or not window:IsShown() then return end
     local options, catalog = JJLWCharacter, JJLWCatalog
+    local characterView = window.character:IsShown()
     if not window.level:HasFocus() then window.level:SetText(options.maxLevel or currentLevel) end
     window.slot:Update()
     for _, button in ipairs(window.equipment) do
         button.icon:SetTexture(GetInventoryItemTexture("player", button.slot) or button.emptyTexture)
-        button:SetChecked(options.slot == button.slot)
         if button:IsShown() and button:IsMouseOver() then ShowEquippedTooltip(button) end
     end
-    local rows, baselines = {}, {}
+    local rows, baselines, matching = {}, {}, {}
     for _, slot in ipairs(lw.slots) do
         if slot[2] ~= 0 then baselines[slot[2]] = EquippedValue(slot[2]) end
     end
@@ -152,8 +208,9 @@ UpdateWindow = function()
             if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
             local item = recipe.itemID and catalog.items[recipe.itemID]
             if item and item.slot and item.requiredLevel
-                and (options.slot == 0 or options.slot == item.slot)
+                and (characterView or options.slot == 0 or options.slot == item.slot)
                 and item.requiredLevel <= (options.maxLevel or currentLevel) then
+                matching[item.slot] = true
                 local value = StatValue(item.stats)
                 local baseline = baselines[item.slot]
                 local delta
@@ -173,6 +230,13 @@ UpdateWindow = function()
         if a.item.itemID ~= b.item.itemID then return a.item.itemID < b.item.itemID end
         return a.recipeID < b.recipeID
     end)
+    if characterView then
+        local count = UpdateRecommendations(rows, matching)
+        window.status:SetText(not catalog and "Open your own Leatherworking to save the catalog"
+            or ("%d / 9 slots | %d items unavailable | %d outputs unresolved%s")
+                :format(count, missing, unresolved, lw.IsRefreshing() and " | Loading" or ""))
+        return
+    end
     for index, entry in ipairs(rows) do
         local row = window.rows[index]
         if not row then
@@ -205,7 +269,7 @@ lw.UpdateWindow = UpdateWindow
 local function CreateWindow()
     window = CreateFrame("Frame", "JJLeatherworkingFrame", UIParent, "BasicFrameTemplate")
     window:Hide()
-    window:SetSize(1130, 570)
+    window:SetSize(890, 570)
     window:SetPoint("CENTER")
     window:SetFrameStrata("DIALOG")
     window:SetToplevel(true)
@@ -232,6 +296,7 @@ local function CreateWindow()
     window.numTabs = 2
     CreateCharacterView()
     local panel = CreateFrame("Frame", nil, window)
+    window.panel = panel
     panel:SetPoint("TOPRIGHT")
     panel:SetPoint("BOTTOMRIGHT")
     panel:SetWidth(830)
@@ -249,7 +314,8 @@ local function CreateWindow()
             end)
         end
     end)
-    Text(panel, 252, -34, 150, "GameFontNormal"):SetText("Slot")
+    window.slotLabel = Text(panel, 252, -34, 150, "GameFontNormal")
+    window.slotLabel:SetText("Slot")
     local slot = CreateFrame("DropdownButton", nil, panel, "WowStyle1DropdownTemplate")
     window.slot = slot
     slot:SetPoint("TOPLEFT", 252, -57)
@@ -263,7 +329,8 @@ local function CreateWindow()
         end
     end)
 
-    Text(panel, 420, -34, 160, "GameFontNormal"):SetText("Max equip level")
+    window.levelLabel = Text(panel, 420, -34, 160, "GameFontNormal")
+    window.levelLabel:SetText("Max equip level")
     window.level = CreateFrame("EditBox", nil, panel, "InputBoxTemplate")
     window.level:SetPoint("TOPLEFT", 426, -58)
     window.level:SetSize(54, 24)
@@ -302,14 +369,17 @@ local function CreateWindow()
         JJLWCharacter.upgradesOnly = self:GetChecked()
         UpdateWindow()
     end)
-    Text(panel, 16, -129, 290, "GameFontNormal"):SetText("Item")
-    Text(panel, 312, -129, 85, "GameFontNormal"):SetText("Armor type")
-    Text(panel, 403, -129, 52, "GameFontNormal"):SetText("Level")
-    Text(panel, 461, -129, 95, "GameFontNormal"):SetText("Stat value")
-    Text(panel, 562, -129, 100, "GameFontNormal"):SetText("vs equipped")
-    Text(panel, 668, -129, 110, "GameFontNormal"):SetText("Recipe")
+    local tableView = CreateFrame("Frame", nil, panel)
+    tableView:SetAllPoints()
+    window.table = tableView
+    Text(tableView, 16, -129, 290, "GameFontNormal"):SetText("Item")
+    Text(tableView, 312, -129, 85, "GameFontNormal"):SetText("Armor type")
+    Text(tableView, 403, -129, 52, "GameFontNormal"):SetText("Level")
+    Text(tableView, 461, -129, 95, "GameFontNormal"):SetText("Stat value")
+    Text(tableView, 562, -129, 100, "GameFontNormal"):SetText("vs equipped")
+    Text(tableView, 668, -129, 110, "GameFontNormal"):SetText("Recipe")
 
-    window.scroll = CreateFrame("ScrollFrame", nil, panel, "ScrollFrameTemplate")
+    window.scroll = CreateFrame("ScrollFrame", nil, tableView, "ScrollFrameTemplate")
     window.scroll:SetPoint("TOPLEFT", 16, -154)
     window.scroll:SetPoint("BOTTOMRIGHT", -40, 58)
     window.scroll.ScrollBar:ClearAllPoints()
@@ -323,7 +393,9 @@ local function CreateWindow()
     window.rows = {}
     window.message = Text(window.scroll, 0, -10, 760, "GameFontHighlight")
     window.status = Text(panel, 16, -520, 795)
-    Text(panel, 16, -542, 795):SetText("Delta compares this stat only, not overall gear quality. Missing data: -")
+    window.note = Text(panel, 16, -542, 795)
+    window.note:SetText("Delta compares this stat only, not overall gear quality. Missing data: -")
+    CreateRecommendations(panel)
     window:SetScript("OnShow", function(self)
         requested = {}
         currentLevel = UnitLevel("player")
