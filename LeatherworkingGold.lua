@@ -26,7 +26,11 @@ end
 local function OutputLink(recipe)
     local cachedLink = recipe.itemID and ItemLink(recipe.itemID)
     local link = recipe.link or cachedLink
-    -- Recipe previews can keep an empty label after item data has loaded.
+    -- Recipe previews can keep placeholder quality and empty labels after item data has loaded.
+    local color = cachedLink and cachedLink:match("^(|c.-)|H")
+    if link and color then
+        link = link:gsub("^|c.-|H", function() return color .. "|H" end, 1)
+    end
     local label = cachedLink and cachedLink:match("|h(%b[])|h")
     if link and label then
         link = link:gsub("|h%[%]|h", function() return "|h" .. label .. "|h" end, 1)
