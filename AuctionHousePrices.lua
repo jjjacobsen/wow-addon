@@ -1,8 +1,8 @@
 local _, addon = ...
-local enabled, auctionOpen, auctionMap, scan
+local enabled, auctionOpen, auctionMap, scan, scanButton
 local events = CreateFrame("Frame")
 local scanCooldown = 15 * 60
-local scanTimeout = 120
+local scanTimeout = 300
 local capitals = {
     [1453] = "Alliance", -- Stormwind
     [1455] = "Alliance", -- Ironforge
@@ -120,6 +120,7 @@ addon.AuctionPrices = { Lookup = Lookup, ItemKey = ItemKey }
 local function StopScan(message)
     scan = nil
     events:SetScript("OnUpdate", nil)
+    if scanButton then scanButton:Enable() end
     if message then
         Say(message .. ". Previous prices kept")
     end
@@ -165,15 +166,36 @@ local function ReadAuction(index)
     return true
 end
 
+local function ReportProgress(now)
+    if now < scan.nextProgress then return end
+    scan.nextProgress = now + 10
+    local message = "Scan progress: " .. math.floor(now - scan.startedAt) .. "s elapsed, "
+    if not scan.count then
+        Say(message .. "waiting for server auction list")
+    else
+        local stage = scan.index < scan.count and "processing auctions" or "waiting for item data"
+        Say(message .. stage .. ", " .. scan.processed .. "/" .. scan.count
+            .. " auctions processed, " .. #scan.pending .. " checked rows waiting for item data")
+    end
+end
+
 local function ProcessScan()
-    if GetTime() >= scan.deadline then
-        StopScan("Scan timed out or was throttled by the server. Wait about 15 minutes before retrying")
+    local now = GetTime()
+    if now >= scan.deadline then
+        if scan.count then
+            StopScan("Scan timed out after " .. scanTimeout .. " seconds: " .. scan.processed .. "/" .. scan.count
+                .. " auctions processed, " .. #scan.pending .. " checked rows still waiting for item data")
+        else
+            StopScan("Scan timed out after " .. scanTimeout .. " seconds without a server auction list"
+                .. ". The request may be throttled. Wait for the 15-minute scan cooldown before retrying")
+        end
         return
     end
     if MarketKey() ~= scan.marketKey or C_Map.GetBestMapForUnit("player") ~= auctionMap then
         StopScan("Scan cancelled because the market or location changed")
         return
     end
+    ReportProgress(now)
     if not scan.count then
         return
     end
@@ -181,26 +203,31 @@ local function ProcessScan()
         StopScan("Auction data changed during the scan")
         return
     end
-    for _ = 1, 200 do
-        local index
-        if scan.index < scan.count then
-            index = scan.index
-            scan.index = scan.index + 1
-        else
-            index = next(scan.pending)
-            if not index then
-                CommitScan()
-                return
-            end
-        end
+    local budget = 200
+    while scan.index < scan.count and budget > 0 do
+        local index = scan.index
+        scan.index = index + 1
+        budget = budget - 1
         if ReadAuction(index) then
-            scan.pending[index] = nil
+            scan.processed = scan.processed + 1
         else
-            scan.pending[index] = true
-            if scan.index == scan.count then
-                return
-            end
+            table.insert(scan.pending, index)
         end
+    end
+    -- Rotate through unfinished rows so one missing item cannot block the others.
+    for _ = 1, math.min(budget, #scan.pending) do
+        if scan.pendingIndex > #scan.pending then scan.pendingIndex = 1 end
+        local position = scan.pendingIndex
+        if ReadAuction(scan.pending[position]) then
+            scan.processed = scan.processed + 1
+            scan.pending[position] = scan.pending[#scan.pending]
+            scan.pending[#scan.pending] = nil
+        else
+            scan.pendingIndex = position + 1
+        end
+    end
+    if scan.index == scan.count and #scan.pending == 0 then
+        CommitScan()
     end
 end
 
@@ -224,11 +251,28 @@ local function StartScan()
         Say("Local scan cooldown: " .. math.ceil(remaining / 60) .. " minutes remaining")
         return
     end
-    scan = { marketKey = MarketKey(), lowest = {}, pending = {}, index = 0, deadline = GetTime() + scanTimeout }
+    local startedAt = GetTime()
+    scan = {
+        marketKey = MarketKey(), lowest = {}, pending = {}, pendingIndex = 1, index = 0, processed = 0,
+        startedAt = startedAt, nextProgress = startedAt + 10, deadline = startedAt + scanTimeout,
+    }
     JJAuctionPrices.lastScanAttempt = now
+    if scanButton then scanButton:Disable() end
     events:SetScript("OnUpdate", ProcessScan)
     Say("Full scan started. Keep the auction house open")
     C_AuctionHouse.ReplicateItems()
+end
+
+local function CreateScanButton()
+    if scanButton or not AuctionHouseFrame then return end
+    local searchBar = AuctionHouseFrame.SearchBar
+    scanButton = CreateFrame("Button", nil, searchBar, "UIPanelButtonTemplate")
+    scanButton:SetSize(64, 22)
+    scanButton:SetPoint("RIGHT", searchBar.FilterButton, "LEFT", -8, 0)
+    scanButton:SetText("Scan")
+    scanButton:SetScript("OnClick", StartScan)
+    scanButton:SetEnabled(not scan)
+    events:UnregisterEvent("ADDON_LOADED")
 end
 
 StaticPopupDialogs.JJ_CLEAR_AUCTION_PRICES = {
@@ -298,21 +342,26 @@ addon.RegisterFeature("auctionHousePrices", "Auction house prices", function(val
     for _, market in pairs(JJAuctionPrices.markets) do
         Prune(market.history, Day() - 13)
     end
+    events:RegisterEvent("ADDON_LOADED")
     events:RegisterEvent("AUCTION_HOUSE_SHOW")
     events:RegisterEvent("AUCTION_HOUSE_CLOSED")
     events:RegisterEvent("REPLICATE_ITEM_LIST_UPDATE")
-    events:SetScript("OnEvent", function(_, event)
-        if event == "AUCTION_HOUSE_SHOW" then
+    events:SetScript("OnEvent", function(_, event, loadedAddon)
+        if event == "ADDON_LOADED" then
+            if loadedAddon == "Blizzard_AuctionHouseUI" then CreateScanButton() end
+        elseif event == "AUCTION_HOUSE_SHOW" then
             auctionOpen = true
             auctionMap = C_Map.GetBestMapForUnit("player")
+            CreateScanButton()
         elseif event == "AUCTION_HOUSE_CLOSED" then
             auctionOpen = false
             if scan then
                 StopScan("Scan cancelled because the auction house closed")
             end
-        elseif scan and not scan.count then
+        elseif event == "REPLICATE_ITEM_LIST_UPDATE" and scan and not scan.count then
             scan.count = C_AuctionHouse.GetNumReplicateItems()
         end
     end)
+    CreateScanButton()
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddPrices)
 end)
