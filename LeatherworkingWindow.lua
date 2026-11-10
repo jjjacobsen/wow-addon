@@ -190,10 +190,14 @@ local function MakeRow(index)
     return row
 end
 
-UpdateWindow = function()
+UpdateWindow = function(refreshGold)
     if not window or not window:IsShown() then return end
     if window.gold:IsShown() then
-        lw.UpdateGoldView(window.gold)
+        if refreshGold ~= false then
+            lw.UpdateGoldView(window.gold)
+        else
+            lw.UpdateGoldScanStatus(window.gold)
+        end
         return
     end
     local options, catalog = JJLWCharacter, JJLWCatalog
@@ -316,7 +320,7 @@ local function CreateWindow()
         for _, choice in ipairs(lw.stats) do
             root:CreateRadio(choice[1], function() return JJLWCharacter.stat == choice[2] end, function()
                 JJLWCharacter.stat = choice[2]
-                UpdateWindow()
+                UpdateWindow(false)
             end)
         end
     end)
@@ -330,7 +334,7 @@ local function CreateWindow()
         for _, choice in ipairs(lw.slots) do
             root:CreateRadio(choice[1], function() return JJLWCharacter.slot == choice[2] end, function()
                 JJLWCharacter.slot = choice[2]
-                UpdateWindow()
+                UpdateWindow(false)
             end)
         end
     end)
@@ -355,7 +359,7 @@ local function CreateWindow()
         local value = tonumber(self:GetText())
         if self.edited and value then JJLWCharacter.maxLevel = value end
         self.edited = false
-        UpdateWindow()
+        UpdateWindow(false)
     end)
     local auto = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     auto:SetPoint("LEFT", window.level, "RIGHT", 6, 0)
@@ -364,7 +368,7 @@ local function CreateWindow()
     auto:SetScript("OnClick", function()
         window.level:ClearFocus()
         JJLWCharacter.maxLevel = nil
-        UpdateWindow()
+        UpdateWindow(false)
     end)
 
     local upgrades = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
@@ -373,7 +377,7 @@ local function CreateWindow()
     upgrades:SetChecked(JJLWCharacter.upgradesOnly)
     upgrades:SetScript("OnClick", function(self)
         JJLWCharacter.upgradesOnly = self:GetChecked()
-        UpdateWindow()
+        UpdateWindow(false)
     end)
     local tableView = CreateFrame("Frame", nil, panel)
     tableView:SetAllPoints()
@@ -421,7 +425,7 @@ local function CreateWindow()
             window.updateQueued = true
             RunNextFrame(function()
                 window.updateQueued = false
-                UpdateWindow()
+                UpdateWindow(false)
             end)
         end
     end)

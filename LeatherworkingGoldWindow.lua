@@ -87,6 +87,13 @@ local function MakeRow(view, index)
     return row
 end
 
+function lw.UpdateGoldScanStatus(view)
+    if not JJLWCatalog then
+        view.message:SetText(lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
+            or "Open your own Leatherworking and use /jj lwscan")
+    end
+end
+
 function lw.UpdateGoldView(view)
     view.materials:Update()
     view.prices:Update()
@@ -112,9 +119,8 @@ function lw.UpdateGoldView(view)
     for index = #rows + 1, #view.rows do view.rows[index]:Hide() end
     view.content:SetHeight(math.max(1, #rows * ROW_HEIGHT))
     view.scroll:SetVerticalScroll(math.min(view.scroll:GetVerticalScroll(), view.scroll:GetVerticalScrollRange()))
-    view.message:SetText(not JJLWCatalog and (lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
-        or "Open your own Leatherworking and use /jj lwscan")
-        or #rows == 0 and "No matching recipes" or "")
+    view.message:SetText(#rows == 0 and "No matching recipes" or "")
+    lw.UpdateGoldScanStatus(view)
     local _, _, scannedAt, market = addon.AuctionPrices.Lookup()
     local scan = "No AH scan for this market"
     if scannedAt then
@@ -186,8 +192,4 @@ function lw.CreateGoldView(window)
     view.rows = {}
     view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
     view.scan = Text(view, 16, -519, 862)
-    view:SetScript("OnShow", function()
-        view.ticker = C_Timer.NewTicker(60, function() lw.UpdateWindow() end)
-    end)
-    view:SetScript("OnHide", function() view.ticker:Cancel() end)
 end

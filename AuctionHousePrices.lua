@@ -157,7 +157,7 @@ local function CommitScan()
     local count = scan.count
     StopScan()
     Say("Scan complete: " .. count .. " auctions")
-    addon.Leatherworking.UpdateWindow()
+    addon.Leatherworking.UpdateWindow(false)
 end
 
 local function ReadAuction(index)

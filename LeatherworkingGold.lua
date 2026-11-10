@@ -251,6 +251,5 @@ function lw.InitializeGold()
                 end
             end
         end
-        lw.UpdateWindow()
     end)
 end

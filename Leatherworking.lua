@@ -91,7 +91,7 @@ local function Finish(message, complete)
     active = nil
     events:UnregisterEvent("ITEM_DATA_LOAD_RESULT")
     print("wow-addon: Leatherworking scan " .. message)
-    lw.UpdateWindow()
+    lw.UpdateWindow(false)
 end
 
 local function CancelScan()
@@ -227,7 +227,7 @@ local function ScanRecipes()
         Finish("timed out after 60 seconds. Previous catalog kept")
     end)
     print("wow-addon: Leatherworking scan started. Keep your own Leatherworking open")
-    lw.UpdateWindow()
+    lw.UpdateWindow(false)
 end
 
 function lw.IsRefreshing()
@@ -242,7 +242,7 @@ local function RecipeLearned(recipeID)
     end
     JJLWCharacter.learned[recipeID] = true
     if active then active.learned[recipeID] = true end
-    lw.UpdateWindow()
+    lw.UpdateWindow(false)
 end
 
 function addon.LeatherworkingCommand()
