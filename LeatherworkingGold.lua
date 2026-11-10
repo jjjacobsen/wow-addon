@@ -91,6 +91,18 @@ local function AddCost(entry, cost, forgone)
     entry.forgone = entry.forgone and forgone and entry.forgone + forgone or nil
 end
 
+local function BuyIngredient(line, entry, farm)
+    local key = addon.AuctionPrices.ItemKey(line.link)
+    local vendor = farm and key and JJLWCharacter.goldVendor[key]
+    local price = vendor and vendor.price or Price(line.link)
+    local source = JJLWCharacter.gold.prices == "median" and "AH median (14d)" or "AH latest lowest"
+    line.source = vendor and "Vendor observed " .. date("%Y-%m-%d %H:%M", vendor.at)
+        or source .. (farm and " estimate (no vendor quote)" or " estimate")
+    line.unitPrice = price
+    line.cost = price and price * line.quantity
+    AddCost(entry, line.cost, 0)
+end
+
 local function Ingredients(recipeID, crafts, entry, producers, path, depth)
     local recipe = JJLWCatalog.recipes[recipeID]
     if path[recipeID] then
@@ -118,6 +130,16 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
             line.source, line.cost = "Farmed, zero cash", 0
             line.forgone = price and price * quantity
             AddCost(entry, 0, line.forgone)
+        elseif farm and ingredient.itemID == 15409 then
+            -- Forever 70888: Salt Shaker (19566), not a native LW recipe.
+            -- One Deeprock Salt (8150) makes one Refined Deeprock Salt (15409).
+            line.expanded = true
+            line.source = ("Salt Shaker: %d use(s), %d produced"):format(quantity, quantity)
+            Issue(entry, "Salt Shaker and LW 250 required. Shared 71-hour cooldown, availability not checked"
+                .. ". Device and cooldown value excluded")
+            local salt = { link = ItemLink(8150), itemID = 8150, quantity = quantity, depth = depth + 1 }
+            table.insert(entry.lines, salt)
+            BuyIngredient(salt, entry, farm)
         elseif farm and key and producers[key] then
             local choices = producers[key]
             if #choices ~= 1 then
@@ -138,14 +160,7 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
                 end
             end
         else
-            local vendor = farm and key and JJLWCharacter.goldVendor[key]
-            local price = vendor and vendor.price or Price(link)
-            local source = JJLWCharacter.gold.prices == "median" and "AH median (14d)" or "AH latest lowest"
-            line.source = vendor and "Vendor observed " .. date("%Y-%m-%d %H:%M", vendor.at)
-                or source .. (farm and " estimate (no vendor quote)" or " estimate")
-            line.unitPrice = price
-            line.cost = price and price * quantity
-            AddCost(entry, line.cost, 0)
+            BuyIngredient(line, entry, farm)
         end
     end
     path[recipeID] = nil
@@ -189,8 +204,8 @@ function lw.GoldRows()
                 end
                 if entry.needsRecipe and not JJLWCharacter.gold.includeUnlearned then
                     hidden = hidden + 1
-                elseif JJLWCharacter.gold.excludeUnavailable and (not itemAvailable or recipe.quantity == nil
-                    or entry.cash == nil or entry.sale == nil or entry.margin == nil) then
+                elseif not itemAvailable or recipe.quantity == nil
+                    or entry.cash == nil or entry.sale == nil or entry.margin == nil then
                     unavailable = unavailable + 1
                 else
                     table.insert(rows, entry)
@@ -211,7 +226,6 @@ end
 
 function lw.InitializeGold()
     JJLWCharacter.gold = JJLWCharacter.gold or { materials = "buy", prices = "lowest", includeUnlearned = false }
-    if JJLWCharacter.gold.excludeUnavailable == nil then JJLWCharacter.gold.excludeUnavailable = false end
     if JJLWCharacter.gold.excludeGear == nil then JJLWCharacter.gold.excludeGear = false end
     JJLWCharacter.goldVendor = JJLWCharacter.goldVendor or {}
     local events = CreateFrame("Frame")
