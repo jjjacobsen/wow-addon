@@ -27,41 +27,14 @@ end
 local function Tooltip(row)
     local entry = row.entry
     GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
+    GameTooltip_SuppressAutomaticCompareItem(GameTooltip)
     if entry.link then GameTooltip:SetHyperlink(entry.link) else GameTooltip:ClearLines() end
-    GameTooltip:AddLine(entry.recipe.name or ("Recipe " .. entry.recipeID), 1, 0.82, 0)
-    GameTooltip:AddLine("Estimates per craft, before AH fees", 1, 0.82, 0)
-    local recipe = entry.recipe
-    if recipe.quantity then
-        GameTooltip:AddLine("Output: " .. recipe.quantity
-            .. (recipe.quantityMax ~= recipe.quantity and (" minimum (up to " .. recipe.quantityMax .. ")") or ""))
-    end
-    GameTooltip:AddDoubleLine("Cash materials", Money(entry.cash))
-    GameTooltip:AddDoubleLine("Sale value", Money(entry.sale))
-    GameTooltip:AddDoubleLine("Margin before AH fees", Money(entry.margin))
-    if JJLWCharacter.gold.materials == "farm" then
-        GameTooltip:AddDoubleLine("Forgone material sale before AH fees", Money(entry.forgone))
-        GameTooltip:AddDoubleLine("Margin after material value, before AH fees", Money(entry.materialMargin))
-        GameTooltip:AddLine("Farmed inputs cost zero cash, but can have sale value", 0.7, 0.7, 0.7, true)
-    elseif JJLWCharacter.gold.materials == "raw" then
-        GameTooltip:AddDoubleLine("Forgone material sale before AH fees", Money(entry.forgone))
-        GameTooltip:AddLine("All raw inputs are purchased, including leather, hides and supplies such as Silken Thread", 0.7, 0.7, 0.7, true)
-    end
-    if JJLWCharacter.gold.materials == "farm" or JJLWCharacter.gold.materials == "raw" then
-        GameTooltip:AddLine("Purchases use observed vendor quotes, or AH estimates without a quote", 0.7, 0.7, 0.7, true)
-        GameTooltip:AddLine("Intermediaries round up to full crafts. Leftovers have no credited value", 0.7, 0.7, 0.7, true)
-    end
     for _, issue in ipairs(entry.issues) do GameTooltip:AddLine(issue, 1, 0.3, 0.3, true) end
     for _, line in ipairs(entry.lines) do
         local indent = string.rep("  ", line.depth)
         GameTooltip:AddDoubleLine(indent .. line.quantity .. " x " .. (line.link or ("Item " .. line.itemID)),
-            line.expanded and "See inputs" or Money(line.cost), 1, 1, 1, 1, 1, 1)
-        GameTooltip:AddLine(indent .. line.source
-            .. (line.unitPrice and (" | " .. Money(line.unitPrice) .. " / unit") or ""), 0.7, 0.7, 0.7, true)
-        if line.source == "Farmed, zero cash" then
-            GameTooltip:AddDoubleLine(indent .. "  Forgone sale before AH fees", Money(line.forgone))
-        end
+            line.expanded and "" or Money(line.cost), 1, 1, 1, 1, 1, 1)
     end
-    GameTooltip:AddLine("No sale prediction. AH fees, deposits and relists excluded", 0.7, 0.7, 0.7, true)
     GameTooltip:Show()
 end
 
