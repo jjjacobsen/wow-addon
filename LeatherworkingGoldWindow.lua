@@ -84,10 +84,8 @@ end
 function lw.UpdateGoldView(view)
     view.materials:Update()
     view.prices:Update()
-    local rows, hidden, unavailable, gear = lw.GoldRows()
-    local missingIngredients = false
+    local rows = lw.GoldRows()
     for index, entry in ipairs(rows) do
-        if not entry.recipe.ingredients then missingIngredients = true end
         local row = view.rows[index]
         if not row then
             row = MakeRow(view, index)
@@ -118,10 +116,6 @@ function lw.UpdateGoldView(view)
         scan = "Scan " .. date("%Y-%m-%d %H:%M", scannedAt) .. " | " .. minutes .. " min ago"
     end
     view.scan:SetText((market and MarketName(market) or "Market unavailable") .. " | " .. scan)
-    local status = lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
-        or missingIngredients and "Open your own Leatherworking and use /jj lwscan for ingredients"
-        or "Hover for ingredients and sources"
-    view.status:SetText(("%d shown | Hidden: %d gear, %d unlearned/unknown, %d unavailable | %s"):format(#rows, gear, hidden, unavailable, status))
 end
 
 function lw.CreateGoldView(window)
@@ -182,7 +176,7 @@ function lw.CreateGoldView(window)
     Text(view, 678, -119, 184, "GameFontNormal"):SetText("Margin before AH fees")
     view.scroll = CreateFrame("ScrollFrame", nil, view, "ScrollFrameTemplate")
     view.scroll:SetPoint("TOPLEFT", 16, -146)
-    view.scroll:SetPoint("BOTTOMRIGHT", -40, 66)
+    view.scroll:SetPoint("BOTTOMRIGHT", -40, 40)
     view.scroll.ScrollBar:ClearAllPoints()
     view.scroll.ScrollBar:SetPoint("TOPLEFT", view.scroll, "TOPRIGHT", 6, 0)
     view.scroll.ScrollBar:SetPoint("BOTTOMLEFT", view.scroll, "BOTTOMRIGHT", 6, 0)
@@ -193,8 +187,7 @@ function lw.CreateGoldView(window)
     view.scroll:SetScrollChild(view.content)
     view.rows = {}
     view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
-    view.scan = Text(view, 16, -493, 862)
-    view.status = Text(view, 16, -519, 862)
+    view.scan = Text(view, 16, -519, 862)
     view:SetScript("OnShow", function()
         view.ticker = C_Timer.NewTicker(60, function() lw.UpdateWindow() end)
     end)
