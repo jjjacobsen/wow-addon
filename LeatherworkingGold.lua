@@ -173,10 +173,20 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
     path[recipeID] = nil
 end
 
+function lw.GoldMaxSkill()
+    if JJLWCharacter.gold.maxSkill ~= nil then return JJLWCharacter.gold.maxSkill end
+    -- The native profession book uses rank separately from rankModifier.
+    for _, index in pairs({ GetProfessions() }) do
+        local _, _, rank, _, _, _, skillLine = GetProfessionInfo(index)
+        if skillLine == 165 then return rank end
+    end
+end
+
 function lw.GoldRows()
     local rows, hidden, unavailable, gear = {}, 0, 0, 0
     if not JJLWCatalog then return rows, hidden, unavailable, gear end
     local producers = Producers()
+    local maxSkill = lw.GoldMaxSkill()
     for recipeID, recipe in pairs(JJLWCatalog.recipes) do
         local link = OutputLink(recipe)
         local eligible, reason = SaleEligibility(link)
@@ -190,6 +200,9 @@ function lw.GoldRows()
                 and equipLoc ~= "INVTYPE_NON_EQUIP_IGNORE" and equipLoc ~= "INVTYPE_BAG" and equipLoc ~= "INVTYPE_QUIVER" then
                 gear = gear + 1
             elseif not JJLWCharacter.gold.includeUnlearned and JJLWCharacter.learned[recipeID] ~= true then
+                hidden = hidden + 1
+            elseif JJLWCharacter.learned[recipeID] ~= true and maxSkill and recipe.requiredSkill
+                and recipe.requiredSkill > maxSkill then
                 hidden = hidden + 1
             else
                 local item = recipe.itemID and JJLWCatalog.items[recipe.itemID]

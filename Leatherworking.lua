@@ -152,6 +152,34 @@ local function CaptureSchematic(recipeID, run)
     return true
 end
 
+local function CaptureRequirement(pattern, run)
+    if pattern.failed then return true end
+    if not C_Item.IsItemDataCachedByID(pattern.itemID) then
+        if not pattern.requestedAt then
+            pattern.requestedAt = GetTime()
+            run.patternPending[pattern.itemID] = pattern
+            C_Item.RequestLoadItemDataByID(pattern.itemID)
+        end
+        -- Missing pattern metadata must not prevent the catalog from being published.
+        return GetTime() - pattern.requestedAt >= 10
+    end
+    pattern.attempts = pattern.attempts + 1
+    local tooltip = C_TooltipInfo.GetItemByID(pattern.itemID)
+    if tooltip then
+        for _, line in ipairs(tooltip.lines) do
+            if line.type == Enum.TooltipDataLineType.UsageRequirement
+                and line.requirementType == Enum.TooltipDataUsageRequirementType.Skill and line.leftText then
+                local skill = tonumber(line.leftText:match(run.requirementPattern))
+                if skill then
+                    run.catalog.recipes[pattern.recipeID].requiredSkill = skill
+                    return true
+                end
+            end
+        end
+    end
+    return pattern.attempts >= 3
+end
+
 local function Tick()
     local run = active
     if not ScanReady() or C_TradeSkillUI.GetBaseProfessionInfo().sourceCounter ~= run.sourceCounter then
@@ -173,17 +201,24 @@ local function Tick()
             C_Item.RequestLoadItemDataByID(itemID)
         end
     end
-    if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending) then
+    for _ = 1, math.min(10, #run.patterns - run.patternIndex + 1) do
+        local pattern = run.patterns[run.patternIndex]
+        run.patternIndex = run.patternIndex + 1
+        if not CaptureRequirement(pattern, run) then table.insert(run.patterns, pattern) end
+    end
+    if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending)
+        and run.patternIndex > #run.patterns then
         local missing = 0
         for _, item in pairs(run.catalog.items) do
             if not item.loaded or (item.slot and not item.stats) then missing = missing + 1 end
         end
-        local unresolved = 0
+        local unresolved, requirements = 0, 0
         for _, recipe in pairs(run.catalog.recipes) do
             if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
+            if recipe.requiredSkill then requirements = requirements + 1 end
         end
-        Finish(("complete: %d recipes, %d items unavailable, %d outputs unresolved")
-            :format(#run.recipeIDs, missing, unresolved), true)
+        Finish(("complete: %d recipes, %d items unavailable, %d outputs unresolved, %d LW requirements known")
+            :format(#run.recipeIDs, missing, unresolved, requirements), true)
     end
 end
 
@@ -201,7 +236,11 @@ local function ScanRecipes()
         print("wow-addon: Leatherworking recipes are not ready. Use /jj lwscan when they load")
         return
     end
-    local recipes, learned, itemIDs, items = {}, {}, {}, {}
+    local profession = C_TradeSkillUI.GetBaseProfessionInfo()
+    -- Match the localized native skill requirement, with only its rank captured.
+    local requirementPattern = ITEM_MIN_SKILL:format(profession.professionName, 987654321)
+        :gsub("(%W)", "%%%1"):gsub("987654321", "(%%d+)")
+    local recipes, learned, itemIDs, items, patterns = {}, {}, {}, {}, {}
     table.sort(recipeIDs)
     for _, recipeID in ipairs(recipeIDs) do
         local output = C_TradeSkillUI.GetRecipeOutputItemData(recipeID)
@@ -211,6 +250,10 @@ local function ScanRecipes()
         end
         if itemID and itemID <= 0 then itemID = nil end
         recipes[recipeID] = { itemID = itemID, link = output and output.hyperlink }
+        local patternID = lw.patterns[recipeID]
+        if patternID then
+            table.insert(patterns, { recipeID = recipeID, itemID = patternID, attempts = 0 })
+        end
         if itemID and not items[itemID] then
             items[itemID] = { itemID = itemID }
             table.insert(itemIDs, itemID)
@@ -219,7 +262,9 @@ local function ScanRecipes()
     active = {
         catalog = { recipes = recipes, items = items }, learned = learned,
         itemIDs = itemIDs, index = 1, pending = {}, recipeIDs = recipeIDs, recipeIndex = 1,
-        sourceCounter = C_TradeSkillUI.GetBaseProfessionInfo().sourceCounter,
+        sourceCounter = profession.sourceCounter,
+        patterns = patterns, patternIndex = 1, patternPending = {},
+        requirementPattern = "^" .. requirementPattern .. "$",
     }
     events:RegisterEvent("ITEM_DATA_LOAD_RESULT")
     active.ticker = C_Timer.NewTicker(0.2, Tick)
@@ -279,6 +324,11 @@ addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
                 if success then ReadItem(active.catalog.items[itemID]) end
                 -- Failed item loads are terminal too. Keep their recipe metadata.
                 active.pending[itemID] = nil
+            end
+            local pattern = active.patternPending[itemID]
+            if pattern then
+                pattern.failed = not success
+                active.patternPending[itemID] = nil
             end
         elseif event == "NEW_RECIPE_LEARNED" then
             RecipeLearned(itemID)
