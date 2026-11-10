@@ -24,7 +24,13 @@ local function ItemLink(itemID)
 end
 
 local function OutputLink(recipe)
-    local link = recipe.link or (recipe.itemID and ItemLink(recipe.itemID))
+    local cachedLink = recipe.itemID and ItemLink(recipe.itemID)
+    local link = recipe.link or cachedLink
+    -- Recipe previews can keep an empty label after item data has loaded.
+    local label = cachedLink and cachedLink:match("|h(%b[])|h")
+    if link and label then
+        link = link:gsub("|h%[%]|h", function() return "|h" .. label .. "|h" end, 1)
+    end
     local item = link and link:match("item:([%d:%-]+)")
     if not item then return link end
     local fields = { strsplit(":", item) }
