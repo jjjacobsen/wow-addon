@@ -70,7 +70,15 @@ end
 function lw.UpdateGoldView(view)
     view.materials:Update()
     view.prices:Update()
-    local rows = lw.GoldRows()
+    local rows = {}
+    local query = view.search:GetText():lower()
+    for _, entry in ipairs(lw.GoldRows()) do
+        local name = entry.name:match("|h%[(.-)%]|h") or entry.name
+        if query == "" or name:lower():find(query, 1, true)
+            or (entry.recipe.name or ""):lower():find(query, 1, true) then
+            table.insert(rows, entry)
+        end
+    end
     for index, entry in ipairs(rows) do
         local row = view.rows[index]
         if not row then
@@ -108,6 +116,10 @@ function lw.CreateGoldView(window)
     view:SetAllPoints()
     view:Hide()
     window.gold = view
+    view.search = CreateFrame("EditBox", nil, view, "SearchBoxTemplate")
+    view.search:SetPoint("TOPLEFT", 21, -59)
+    view.search:SetSize(150, 20)
+    view.search:SetAutoFocus(false)
     local function Dropdown(x, width, label, option, choices)
         Text(view, x, -34, width, "GameFontNormal"):SetText(label)
         local dropdown = CreateFrame("DropdownButton", nil, view, "WowStyle1DropdownTemplate")
@@ -123,14 +135,14 @@ function lw.CreateGoldView(window)
         end)
         return dropdown
     end
-    view.materials = Dropdown(16, 200, "Materials", "materials", {
+    view.materials = Dropdown(186, 190, "Materials", "materials", {
         { "Buy finished inputs", "buy" }, { "Buy raw materials", "raw" }, { "Farm leather and hides", "farm" },
     })
-    view.prices = Dropdown(236, 160, "Prices", "prices", {
+    view.prices = Dropdown(396, 150, "Prices", "prices", {
         { "Latest lowest", "lowest" }, { "14-day median", "median" },
     })
     local unlearned = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
-    unlearned:SetPoint("TOPLEFT", 416, -55)
+    unlearned:SetPoint("TOPLEFT", 566, -55)
     unlearned.Text:SetText("Include unlearned")
     unlearned:SetChecked(JJLWCharacter.gold.includeUnlearned)
     unlearned:SetScript("OnClick", function(self)
@@ -138,7 +150,7 @@ function lw.CreateGoldView(window)
         lw.UpdateWindow()
     end)
     local gear = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
-    gear:SetPoint("TOPLEFT", 586, -55)
+    gear:SetPoint("TOPLEFT", 736, -55)
     gear.Text:SetText("Exclude gear")
     gear:SetChecked(JJLWCharacter.gold.excludeGear)
     gear:SetScript("OnClick", function(self)
@@ -165,4 +177,5 @@ function lw.CreateGoldView(window)
     view.rows = {}
     view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
     view.scan = Text(view, 16, -519, 862)
+    view.search:HookScript("OnTextChanged", function() lw.UpdateWindow() end)
 end
