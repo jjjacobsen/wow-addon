@@ -108,7 +108,8 @@ function lw.UpdateGoldView(view)
     for index = #rows + 1, #view.rows do view.rows[index]:Hide() end
     view.content:SetHeight(math.max(1, #rows * ROW_HEIGHT))
     view.scroll:SetVerticalScroll(math.min(view.scroll:GetVerticalScroll(), view.scroll:GetVerticalScrollRange()))
-    view.message:SetText(not JJLWCatalog and "Open your own Leatherworking to save ingredient data"
+    view.message:SetText(not JJLWCatalog and (lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
+        or "Open your own Leatherworking and use /jj lwscan")
         or #rows == 0 and "No matching recipes" or "")
     local _, _, scannedAt, market = addon.AuctionPrices.Lookup()
     local scan = "No AH scan for this market"
@@ -117,8 +118,8 @@ function lw.UpdateGoldView(view)
         scan = "Scan " .. date("%Y-%m-%d %H:%M", scannedAt) .. " | " .. minutes .. " min ago"
     end
     view.scan:SetText((market and MarketName(market) or "Market unavailable") .. " | " .. scan)
-    local status = lw.IsRefreshing() and "Loading, keep your own Leatherworking open"
-        or missingIngredients and "Open your own Leatherworking for ingredient data"
+    local status = lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
+        or missingIngredients and "Open your own Leatherworking and use /jj lwscan for ingredients"
         or "Hover for ingredients and sources"
     view.status:SetText(("%d recipes | Hidden: %d unlearned/unknown, %d unavailable | %s"):format(#rows, hidden, unavailable, status))
 end

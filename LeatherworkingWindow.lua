@@ -112,7 +112,8 @@ local function SelectView(index)
     window.levelLabel:SetPoint("TOPLEFT", characterView and 252 or 420, -34)
     window.level:ClearAllPoints()
     window.level:SetPoint("TOPLEFT", characterView and 258 or 426, -58)
-    window.status:SetWidth(characterView and 558 or 795)
+    window.status:SetShown(index == 2)
+    window.status:SetWidth(795)
     UpdateWindow()
 end
 
@@ -206,18 +207,13 @@ UpdateWindow = function()
     for _, slot in ipairs(lw.slots) do
         if slot[2] ~= 0 then baselines[slot[2]] = EquippedValue(slot[2]) end
     end
-    local missing, unresolved, recipeCount = 0, 0, 0
+    local recipeCount = 0
     if catalog then
         for _, item in pairs(catalog.items) do
             if item.slot then wearable[item.itemID] = lw.CanWearArmor(item.itemID) end
-            if not item.ingredientOnly and (not item.loaded or (item.slot and (not item.stats or item.requiredLevel == nil
-                or wearable[item.itemID] == nil))) then
-                missing = missing + 1
-            end
         end
         for recipeID, recipe in pairs(catalog.recipes) do
             recipeCount = recipeCount + 1
-            if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
             local item = recipe.itemID and catalog.items[recipe.itemID]
             if item and item.slot and item.requiredLevel and wearable[item.itemID]
                 and (characterView or options.slot == 0 or options.slot == item.slot)
@@ -243,10 +239,7 @@ UpdateWindow = function()
         return a.recipeID < b.recipeID
     end)
     if characterView then
-        local count = UpdateRecommendations(rows, matching)
-        window.status:SetText(not catalog and "Open your own Leatherworking to save the catalog"
-            or ("%d / 9 slots | %d items unavailable | %d outputs unresolved | Missing data: -%s")
-                :format(count, missing, unresolved, lw.IsRefreshing() and " | Loading" or ""))
+        UpdateRecommendations(rows, matching)
         return
     end
     for index, entry in ipairs(rows) do
@@ -271,9 +264,9 @@ UpdateWindow = function()
     for index = #rows + 1, #window.rows do window.rows[index]:Hide() end
     window.content:SetHeight(math.max(1, #rows * ROW_HEIGHT))
     window.scroll:SetVerticalScroll(math.min(window.scroll:GetVerticalScroll(), window.scroll:GetVerticalScrollRange()))
-    window.status:SetText(("%d shown | %d recipes | %d items unavailable | %d outputs unresolved | Missing data: -%s")
-        :format(#rows, recipeCount, missing, unresolved, lw.IsRefreshing() and " | Loading" or ""))
-    window.message:SetText(not catalog and "Open your own Leatherworking to save the catalog"
+    window.status:SetText(("%d shown | %d recipes"):format(#rows, recipeCount))
+    window.message:SetText(not catalog and (lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
+        or "Open your own Leatherworking and use /jj lwscan")
         or #rows == 0 and "No matching equipment" or "")
 end
 lw.UpdateWindow = UpdateWindow

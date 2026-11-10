@@ -100,7 +100,7 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
     end
     RequireLearned(entry, recipeID, depth > 0)
     if recipe.unavailable or not recipe.ingredients or not recipe.quantity then
-        Issue(entry, recipe.unavailable or "Open your own Leatherworking for ingredient data")
+        Issue(entry, recipe.unavailable or "Open your own Leatherworking and use /jj lwscan for ingredients")
         entry.cash, entry.forgone = nil, nil
         return
     end

@@ -141,12 +141,14 @@ local function CreateSettings()
             addon.FreeSlotCommand()
         elseif command == "lw" then
             addon.LeatherworkingCommand()
+        elseif command == "lwscan" then
+            addon.LeatherworkingScanCommand()
         elseif command == "tank" then
             ToggleTankMode()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw")
+            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan")
         end
     end
 end

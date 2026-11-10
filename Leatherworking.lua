@@ -1,8 +1,7 @@
 local _, addon = ...
 local lw = {}
 addon.Leatherworking = lw
-local enabled, active, captured, queued
-local QueueRefresh
+local enabled, active
 local events = CreateFrame("Frame")
 local armorProficiencies = {
     [Enum.ItemArmorSubclass.Cloth] = 9078,
@@ -75,28 +74,48 @@ local function ReadItem(item)
     return not item.slot or item.stats ~= nil
 end
 
-local function Finish()
-    active.ticker:Cancel()
-    active.timeout:Cancel()
+local function ScanReady()
+    return lw.OwnProfessionOpen() and not C_TradeSkillUI.IsDataSourceChanging()
+        and C_TradeSkillUI.IsTradeSkillReady()
+end
+
+local function Finish(message, complete)
+    local run = active
+    run.ticker:Cancel()
+    run.timeout:Cancel()
+    if complete then
+        -- Publish only a finished run. Browsers keep using the saved catalog until now.
+        JJLWCatalog = run.catalog
+        JJLWCharacter.learned = run.learned
+    end
     active = nil
     events:UnregisterEvent("ITEM_DATA_LOAD_RESULT")
+    print("wow-addon: Leatherworking scan " .. message)
     lw.UpdateWindow()
-    if not captured then QueueRefresh() end
+end
+
+local function CancelScan()
+    if active then Finish("cancelled. Previous catalog kept") end
 end
 
 local function CaptureSchematic(recipeID, run)
-    local recipe = JJLWCatalog.recipes[recipeID]
+    local recipe = run.catalog.recipes[recipeID]
     local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
-    if not schematic then return end
+    local info = C_TradeSkillUI.GetRecipeInfo(recipeID)
+    if not schematic or not info then return false end
+    recipe.name = info.name
+    recipe.unavailable = (info.supportsQualities or info.isRecraft or info.isSalvageRecipe)
+        and "Unsupported output variant" or nil
+    run.learned[recipeID] = run.learned[recipeID] or info.learned
     if not recipe.itemID then
         local itemID = schematic.outputItemID
         if itemID and itemID > 0 then
             recipe.itemID = itemID
-            if not JJLWCatalog.items[itemID] then
-                JJLWCatalog.items[itemID] = { itemID = itemID }
+            if not run.catalog.items[itemID] then
+                run.catalog.items[itemID] = { itemID = itemID }
                 table.insert(run.itemIDs, itemID)
             else
-                JJLWCatalog.items[itemID].ingredientOnly = nil
+                run.catalog.items[itemID].ingredientOnly = nil
             end
         else
             recipe.nonItem = schematic.recipeType == Enum.TradeskillRecipeType.Enchant
@@ -120,101 +139,110 @@ local function CaptureSchematic(recipeID, run)
                 recipe.unavailable = "Unsupported required reagent choice"
             else
                 table.insert(ingredients, { itemID = reagent.itemID, quantity = slot.quantityRequired })
-                if not JJLWCatalog.items[reagent.itemID] then
-                    JJLWCatalog.items[reagent.itemID] = { itemID = reagent.itemID, ingredient = true, ingredientOnly = true }
+                if not run.catalog.items[reagent.itemID] then
+                    run.catalog.items[reagent.itemID] = { itemID = reagent.itemID, ingredient = true, ingredientOnly = true }
                     table.insert(run.itemIDs, reagent.itemID)
                 else
-                    JJLWCatalog.items[reagent.itemID].ingredient = true
+                    run.catalog.items[reagent.itemID].ingredient = true
                 end
             end
         end
     end
     recipe.ingredients = ingredients
+    return true
 end
 
 local function Tick()
     local run = active
-    if run.recipeIndex <= #run.recipeIDs then
-        if not lw.OwnProfessionOpen() or C_TradeSkillUI.IsDataSourceChanging()
-            or not C_TradeSkillUI.IsTradeSkillReady() then
-            captured = false
-            run.recipeIndex = #run.recipeIDs + 1
-        else
-            for _ = 1, 10 do
-                local recipeID = run.recipeIDs[run.recipeIndex]
-                if not recipeID then break end
-                CaptureSchematic(recipeID, run)
-                run.recipeIndex = run.recipeIndex + 1
-            end
-        end
+    if not ScanReady() or C_TradeSkillUI.GetBaseProfessionInfo().sourceCounter ~= run.sourceCounter then
+        CancelScan()
+        return
+    end
+    for _ = 1, 10 do
+        local recipeID = run.recipeIDs[run.recipeIndex]
+        if not recipeID or not CaptureSchematic(recipeID, run) then break end
+        run.recipeIndex = run.recipeIndex + 1
     end
     for _ = 1, 10 do
         local itemID = run.itemIDs[run.index]
         if not itemID then break end
         run.index = run.index + 1
-        local item = JJLWCatalog.items[itemID]
+        local item = run.catalog.items[itemID]
         if not ReadItem(item) then
             run.pending[itemID] = true
             C_Item.RequestLoadItemDataByID(itemID)
         end
     end
-    if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending) then Finish() end
+    if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending) then
+        local missing = 0
+        for _, item in pairs(run.catalog.items) do
+            if not item.loaded or (item.slot and not item.stats) then missing = missing + 1 end
+        end
+        local unresolved = 0
+        for _, recipe in pairs(run.catalog.recipes) do
+            if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
+        end
+        Finish(("complete: %d recipes, %d items unavailable, %d outputs unresolved")
+            :format(#run.recipeIDs, missing, unresolved), true)
+    end
 end
 
-function lw.Refresh()
-    if active then return end
-    if not lw.OwnProfessionOpen() or C_TradeSkillUI.IsDataSourceChanging()
-        or not C_TradeSkillUI.IsTradeSkillReady() then
-        return false
+local function ScanRecipes()
+    if active then
+        print("wow-addon: Leatherworking scan already active")
+        return
+    end
+    if not ScanReady() then
+        print("wow-addon: Open your own Leatherworking and wait for recipes, then use /jj lwscan")
+        return
     end
     local recipeIDs = C_TradeSkillUI.GetAllRecipeIDs()
-    if #recipeIDs == 0 then return false end
+    if #recipeIDs == 0 then
+        print("wow-addon: Leatherworking recipes are not ready. Use /jj lwscan when they load")
+        return
+    end
     local recipes, learned, itemIDs, items = {}, {}, {}, {}
     table.sort(recipeIDs)
     for _, recipeID in ipairs(recipeIDs) do
-        local info = C_TradeSkillUI.GetRecipeInfo(recipeID)
         local output = C_TradeSkillUI.GetRecipeOutputItemData(recipeID)
         local itemID = output and output.itemID
         if (not itemID or itemID <= 0) and output and output.hyperlink then
             itemID = tonumber(output.hyperlink:match("item:(%d+)"))
         end
         if itemID and itemID <= 0 then itemID = nil end
-        recipes[recipeID] = {
-            itemID = itemID,
-            link = output and output.hyperlink,
-            name = info and info.name,
-            unavailable = info and (info.supportsQualities or info.isRecraft or info.isSalvageRecipe)
-                and "Unsupported output variant" or nil,
-        }
-        if info then learned[recipeID] = info.learned end
+        recipes[recipeID] = { itemID = itemID, link = output and output.hyperlink }
         if itemID and not items[itemID] then
             items[itemID] = { itemID = itemID }
             table.insert(itemIDs, itemID)
         end
     end
-    -- Only native shared item data belongs in the account-wide catalog.
-    JJLWCatalog = { recipes = recipes, items = items }
-    JJLWCharacter.learned = learned
-    captured = true
-    active = { itemIDs = itemIDs, index = 1, pending = {}, recipeIDs = recipeIDs, recipeIndex = 1 }
+    active = {
+        catalog = { recipes = recipes, items = items }, learned = learned,
+        itemIDs = itemIDs, index = 1, pending = {}, recipeIDs = recipeIDs, recipeIndex = 1,
+        sourceCounter = C_TradeSkillUI.GetBaseProfessionInfo().sourceCounter,
+    }
     events:RegisterEvent("ITEM_DATA_LOAD_RESULT")
     active.ticker = C_Timer.NewTicker(0.2, Tick)
-    active.timeout = C_Timer.NewTimer(60, Finish)
+    active.timeout = C_Timer.NewTimer(60, function()
+        Finish("timed out after 60 seconds. Previous catalog kept")
+    end)
+    print("wow-addon: Leatherworking scan started. Keep your own Leatherworking open")
     lw.UpdateWindow()
-    return true
 end
 
 function lw.IsRefreshing()
     return active ~= nil
 end
 
-QueueRefresh = function()
-    if queued or active or captured then return end
-    queued = true
-    C_Timer.After(0.3, function()
-        queued = false
-        if not captured then lw.Refresh() end
-    end)
+local function RecipeLearned(recipeID)
+    if not (JJLWCatalog and JJLWCatalog.recipes[recipeID]) then
+        if not C_TradeSkillUI.GetRecipeInfo(recipeID) then return end
+        local info = C_TradeSkillUI.GetProfessionInfoByRecipeID(recipeID)
+        if info.professionID ~= 165 and info.parentProfessionID ~= 165 then return end
+    end
+    JJLWCharacter.learned[recipeID] = true
+    if active then active.learned[recipeID] = true end
+    lw.UpdateWindow()
 end
 
 function addon.LeatherworkingCommand()
@@ -225,6 +253,14 @@ function addon.LeatherworkingCommand()
     lw.ToggleWindow()
 end
 
+function addon.LeatherworkingScanCommand()
+    if not enabled then
+        print("wow-addon: Enable Leatherworking gear in /jj, then click Reload")
+        return
+    end
+    ScanRecipes()
+end
+
 addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
     enabled = value
     if not enabled then return end
@@ -233,23 +269,22 @@ addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
         JJLWCharacter.stat = "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"
     end
     lw.InitializeGold()
-    events:RegisterEvent("TRADE_SKILL_SHOW")
     events:RegisterEvent("TRADE_SKILL_CLOSE")
+    events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGING")
     events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGED")
-    events:RegisterEvent("TRADE_SKILL_LIST_UPDATE")
     events:RegisterEvent("NEW_RECIPE_LEARNED")
     events:SetScript("OnEvent", function(_, event, itemID, success)
         if event == "ITEM_DATA_LOAD_RESULT" then
             if active.pending[itemID] then
-                if success then ReadItem(JJLWCatalog.items[itemID]) end
+                if success then ReadItem(active.catalog.items[itemID]) end
+                -- Failed item loads are terminal too. Keep their recipe metadata.
                 active.pending[itemID] = nil
             end
-        elseif event == "TRADE_SKILL_CLOSE" or event == "TRADE_SKILL_DATA_SOURCE_CHANGED" then
-            captured = false
-            if event == "TRADE_SKILL_DATA_SOURCE_CHANGED" then QueueRefresh() end
-        else
-            if event == "NEW_RECIPE_LEARNED" then captured = false end
-            QueueRefresh()
+        elseif event == "NEW_RECIPE_LEARNED" then
+            RecipeLearned(itemID)
+        elseif event == "TRADE_SKILL_CLOSE" or event == "TRADE_SKILL_DATA_SOURCE_CHANGING"
+            or event == "TRADE_SKILL_DATA_SOURCE_CHANGED" then
+            CancelScan()
         end
     end)
 end)
