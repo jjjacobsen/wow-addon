@@ -53,12 +53,12 @@ local function ItemKey(link)
         return
     end
     local fields = { strsplit(":", item) }
-    for index = 1, math.max(10, #fields) do
+    for index = 1, math.max(12, #fields) do
         if not fields[index] or fields[index] == "" then
             fields[index] = "0"
         end
     end
-    -- Ignore player-applied enchants/gems, unique ID, viewer level and spec.
+    -- Ignore player-applied enchants/gems, unique ID, viewer level/spec and source context.
     -- Keep the suffix and all bonus/modifier fields, never just the item ID.
     for index = 2, 6 do
         fields[index] = "0"
@@ -66,11 +66,56 @@ local function ItemKey(link)
     for index = 8, 10 do
         fields[index] = "0"
     end
+    fields[12] = "0"
     while fields[#fields] == "0" do
         table.remove(fields)
     end
     return table.concat(fields, ":")
 end
+
+-- Index older saved keys without changing the saved scan or history.
+local indexedMarket, indexedLowest, indexedHistory
+local function IndexMarket(market)
+    if market == indexedMarket then return end
+    indexedMarket, indexedLowest, indexedHistory = market, {}, {}
+    for key, price in pairs(market.lowest) do
+        local normalized = ItemKey("item:" .. key)
+        indexedLowest[normalized] = math.min(indexedLowest[normalized] or price, price)
+    end
+    for key, samples in pairs(market.history) do
+        local normalized = ItemKey("item:" .. key)
+        local history = indexedHistory[normalized] or {}
+        indexedHistory[normalized] = history
+        for day, price in pairs(samples) do
+            history[day] = math.min(history[day] or price, price)
+        end
+    end
+end
+
+-- Read-only access to this character's market, including when scanning/tooltips are disabled.
+local function Lookup(link)
+    local marketKey = MarketKey()
+    local market = JJAuctionPrices and JJAuctionPrices.markets[marketKey]
+    if market then IndexMarket(market) end
+    local key = ItemKey(link)
+    local lowest = market and indexedLowest[key]
+    local samples = market and indexedHistory[key]
+    local prices, day = {}, Day()
+    if samples then
+        for sampleDay, price in pairs(samples) do
+            if sampleDay >= day - 13 and sampleDay <= day then
+                table.insert(prices, price)
+            end
+        end
+    end
+    table.sort(prices)
+    local count, median = #prices
+    if count > 0 then
+        median = (prices[math.floor((count + 1) / 2)] + prices[math.ceil((count + 1) / 2)]) / 2
+    end
+    return lowest, median, market and market.scannedAt, marketKey
+end
+addon.AuctionPrices = { Lookup = Lookup, ItemKey = ItemKey }
 
 local function StopScan(message)
     scan = nil
@@ -82,7 +127,8 @@ end
 
 local function CommitScan()
     local market = JJAuctionPrices.markets[scan.marketKey]
-    local history = market and market.history or {}
+    if market then IndexMarket(market) end
+    local history = market and indexedHistory or {}
     local day = Day()
     Prune(history, day - 13)
     for key, price in pairs(scan.lowest) do
@@ -97,6 +143,7 @@ local function CommitScan()
     local count = scan.count
     StopScan()
     Say("Scan complete: " .. count .. " auctions")
+    addon.Leatherworking.UpdateWindow()
 end
 
 local function ReadAuction(index)
@@ -194,6 +241,7 @@ StaticPopupDialogs.JJ_CLEAR_AUCTION_PRICES = {
         end
         JJAuctionPrices.markets[marketKey] = nil
         Say("Cleared auction prices and history for " .. marketKey)
+        addon.Leatherworking.UpdateWindow()
     end,
     timeout = 0,
     whileDead = true,
@@ -228,25 +276,7 @@ local function AddPrices(tooltip, data)
         end
     end
     local _, link = TooltipUtil.GetDisplayedItem(tooltip)
-    local key = ItemKey(link)
-    local market = JJAuctionPrices.markets[MarketKey()]
-    local lowest = market and market.lowest[key]
-    local samples = market and market.history[key]
-    local prices = {}
-    local day = Day()
-    if samples then
-        for sampleDay, price in pairs(samples) do
-            if sampleDay >= day - 13 and sampleDay <= day then
-                table.insert(prices, price)
-            end
-        end
-    end
-    table.sort(prices)
-    local median
-    local count = #prices
-    if count > 0 then
-        median = (prices[math.floor((count + 1) / 2)] + prices[math.ceil((count + 1) / 2)]) / 2
-    end
+    local lowest, median = Lookup(link)
     local function Money(price)
         return price and C_CurrencyInfo.GetCoinTextureString(math.ceil(price)) or "Unavailable"
     end

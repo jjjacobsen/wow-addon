@@ -84,8 +84,70 @@ local function Finish()
     if not captured then QueueRefresh() end
 end
 
+local function CaptureSchematic(recipeID, run)
+    local recipe = JJLWCatalog.recipes[recipeID]
+    local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
+    if not schematic then return end
+    if not recipe.itemID then
+        local itemID = schematic.outputItemID
+        if itemID and itemID > 0 then
+            recipe.itemID = itemID
+            if not JJLWCatalog.items[itemID] then
+                JJLWCatalog.items[itemID] = { itemID = itemID }
+                table.insert(run.itemIDs, itemID)
+            else
+                JJLWCatalog.items[itemID].ingredientOnly = nil
+            end
+        else
+            recipe.nonItem = schematic.recipeType == Enum.TradeskillRecipeType.Enchant
+                or schematic.recipeType == Enum.TradeskillRecipeType.Gathering
+        end
+    end
+    recipe.quantity = schematic.quantityMin
+    recipe.quantityMax = schematic.quantityMax
+    if not recipe.quantity or recipe.quantity <= 0 then
+        recipe.unavailable = "Output quantity unavailable"
+    elseif schematic.recipeType ~= Enum.TradeskillRecipeType.Item then
+        recipe.unavailable = "Unsupported recipe output"
+    end
+    local ingredients = {}
+    for _, slot in ipairs(schematic.reagentSlotSchematics) do
+        if slot.required then
+            local reagent = slot.reagents[1]
+            if #slot.reagents ~= 1 or not reagent.itemID or reagent.currencyID
+                or slot.reagentType ~= Enum.CraftingReagentType.Basic
+                or #slot.variableQuantities > 0 or slot.quantityRequired <= 0 then
+                recipe.unavailable = "Unsupported required reagent choice"
+            else
+                table.insert(ingredients, { itemID = reagent.itemID, quantity = slot.quantityRequired })
+                if not JJLWCatalog.items[reagent.itemID] then
+                    JJLWCatalog.items[reagent.itemID] = { itemID = reagent.itemID, ingredient = true, ingredientOnly = true }
+                    table.insert(run.itemIDs, reagent.itemID)
+                else
+                    JJLWCatalog.items[reagent.itemID].ingredient = true
+                end
+            end
+        end
+    end
+    recipe.ingredients = ingredients
+end
+
 local function Tick()
     local run = active
+    if run.recipeIndex <= #run.recipeIDs then
+        if not lw.OwnProfessionOpen() or C_TradeSkillUI.IsDataSourceChanging()
+            or not C_TradeSkillUI.IsTradeSkillReady() then
+            captured = false
+            run.recipeIndex = #run.recipeIDs + 1
+        else
+            for _ = 1, 10 do
+                local recipeID = run.recipeIDs[run.recipeIndex]
+                if not recipeID then break end
+                CaptureSchematic(recipeID, run)
+                run.recipeIndex = run.recipeIndex + 1
+            end
+        end
+    end
     for _ = 1, 10 do
         local itemID = run.itemIDs[run.index]
         if not itemID then break end
@@ -96,7 +158,7 @@ local function Tick()
             C_Item.RequestLoadItemDataByID(itemID)
         end
     end
-    if run.index > #run.itemIDs and not next(run.pending) then Finish() end
+    if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending) then Finish() end
 end
 
 function lw.Refresh()
@@ -116,15 +178,14 @@ function lw.Refresh()
         if (not itemID or itemID <= 0) and output and output.hyperlink then
             itemID = tonumber(output.hyperlink:match("item:(%d+)"))
         end
-        local nonItem
-        if not itemID or itemID <= 0 then
-            local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
-            itemID = schematic and schematic.outputItemID
-            nonItem = schematic and (schematic.recipeType == Enum.TradeskillRecipeType.Enchant
-                or schematic.recipeType == Enum.TradeskillRecipeType.Gathering)
-        end
         if itemID and itemID <= 0 then itemID = nil end
-        recipes[recipeID] = { itemID = itemID, nonItem = not itemID and nonItem or nil }
+        recipes[recipeID] = {
+            itemID = itemID,
+            link = output and output.hyperlink,
+            name = info and info.name,
+            unavailable = info and (info.supportsQualities or info.isRecraft or info.isSalvageRecipe)
+                and "Unsupported output variant" or nil,
+        }
         if info then learned[recipeID] = info.learned end
         if itemID and not items[itemID] then
             items[itemID] = { itemID = itemID }
@@ -135,7 +196,7 @@ function lw.Refresh()
     JJLWCatalog = { recipes = recipes, items = items }
     JJLWCharacter.learned = learned
     captured = true
-    active = { itemIDs = itemIDs, index = 1, pending = {} }
+    active = { itemIDs = itemIDs, index = 1, pending = {}, recipeIDs = recipeIDs, recipeIndex = 1 }
     events:RegisterEvent("ITEM_DATA_LOAD_RESULT")
     active.ticker = C_Timer.NewTicker(0.2, Tick)
     active.timeout = C_Timer.NewTimer(60, Finish)
@@ -171,6 +232,7 @@ addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
     if JJLWCharacter.stat == "ITEM_MOD_SPELL_POWER_SHORT" then
         JJLWCharacter.stat = "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"
     end
+    lw.InitializeGold()
     events:RegisterEvent("TRADE_SKILL_SHOW")
     events:RegisterEvent("TRADE_SKILL_CLOSE")
     events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGED")

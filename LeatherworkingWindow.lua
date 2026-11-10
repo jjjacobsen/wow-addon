@@ -102,9 +102,11 @@ local function SelectView(index)
     local characterView = index == 1
     window.character:SetShown(characterView)
     window.recommendations:SetShown(characterView)
-    window.table:SetShown(not characterView)
-    window.slot:SetShown(not characterView)
-    window.slotLabel:SetShown(not characterView)
+    window.table:SetShown(index == 2)
+    window.slot:SetShown(index == 2)
+    window.slotLabel:SetShown(index == 2)
+    window.panel:SetShown(index ~= 3)
+    window.gold:SetShown(index == 3)
     window.panel:SetWidth(characterView and 590 or window:GetWidth())
     window.levelLabel:ClearAllPoints()
     window.levelLabel:SetPoint("TOPLEFT", characterView and 252 or 420, -34)
@@ -188,6 +190,10 @@ end
 
 UpdateWindow = function()
     if not window or not window:IsShown() then return end
+    if window.gold:IsShown() then
+        lw.UpdateGoldView(window.gold)
+        return
+    end
     local options, catalog = JJLWCharacter, JJLWCatalog
     local characterView = window.character:IsShown()
     if not window.level:HasFocus() then window.level:SetText(options.maxLevel or currentLevel) end
@@ -204,8 +210,8 @@ UpdateWindow = function()
     if catalog then
         for _, item in pairs(catalog.items) do
             if item.slot then wearable[item.itemID] = lw.CanWearArmor(item.itemID) end
-            if not item.loaded or (item.slot and (not item.stats or item.requiredLevel == nil
-                or wearable[item.itemID] == nil)) then
+            if not item.ingredientOnly and (not item.loaded or (item.slot and (not item.stats or item.requiredLevel == nil
+                or wearable[item.itemID] == nil))) then
                 missing = missing + 1
             end
         end
@@ -288,7 +294,7 @@ local function CreateWindow()
     window.TitleText:SetText("Leatherworking gear")
     table.insert(UISpecialFrames, "JJLeatherworkingFrame")
 
-    for index, label in ipairs({ "Character", "Table" }) do
+    for index, label in ipairs({ "Character", "Table", "Gold making" }) do
         local tab = CreateFrame("Button", nil, window, "PanelTabButtonTemplate")
         tab:SetID(index)
         tab:SetText(label)
@@ -299,7 +305,7 @@ local function CreateWindow()
         end
         tab:SetScript("OnClick", function(self) SelectView(self:GetID()) end)
     end
-    window.numTabs = 2
+    window.numTabs = 3
     CreateCharacterView()
     local panel = CreateFrame("Frame", nil, window)
     window.panel = panel
@@ -400,6 +406,7 @@ local function CreateWindow()
     window.message = Text(window.scroll, 0, -10, 760, "GameFontHighlight")
     window.status = Text(panel, 16, -520, 795)
     CreateRecommendations(panel)
+    lw.CreateGoldView(window)
     window:SetScript("OnShow", function(self)
         requested = {}
         currentLevel = UnitLevel("player")
