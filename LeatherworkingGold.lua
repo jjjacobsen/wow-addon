@@ -35,15 +35,7 @@ local function OutputLink(recipe)
     if link and label then
         link = link:gsub("|h%[%]|h", function() return "|h" .. label .. "|h" end, 1)
     end
-    local item = link and link:match("item:([%d:%-]+)")
-    if not item then return link end
-    local fields = { strsplit(":", item) }
-    if fields[13] ~= "1" or fields[14] ~= "3524" then return link end
-    -- Forever recipe previews add bonus 3524, absent from the actual AH items.
-    -- Remove only this sole preview bonus. Keep suffixes, context and modifiers.
-    fields[13] = "0"
-    table.remove(fields, 14)
-    return (link:gsub("item:[%d:%-]+", "item:" .. table.concat(fields, ":"), 1))
+    return addon.AuctionPrices.NormalizeLink(link)
 end
 
 local function Price(link)

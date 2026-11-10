@@ -47,7 +47,20 @@ local function Prune(history, oldestDay)
     end
 end
 
+local function NormalizeLink(link)
+    local item = link and link:match("item:([%d:%-]+)")
+    if not item then return link end
+    local fields = { strsplit(":", item) }
+    -- Forever previews add this sole display bonus, not an auctionable variant.
+    -- Keep other bonuses, suffixes and every modifier after the bonus list.
+    if fields[13] ~= "1" or fields[14] ~= "3524" then return link end
+    fields[13] = "0"
+    table.remove(fields, 14)
+    return (link:gsub("item:[%d:%-]+", "item:" .. table.concat(fields, ":"), 1))
+end
+
 local function ItemKey(link)
+    link = NormalizeLink(link)
     local item = link and link:match("item:([%d:%-]+)")
     if not item then
         return
@@ -59,7 +72,7 @@ local function ItemKey(link)
         end
     end
     -- Ignore player-applied enchants/gems, unique ID, viewer level/spec and source context.
-    -- Keep the suffix and all bonus/modifier fields, never just the item ID.
+    -- Keep the suffix and real bonus/modifier fields, never just the item ID.
     for index = 2, 6 do
         fields[index] = "0"
     end
@@ -115,7 +128,7 @@ local function Lookup(link)
     end
     return lowest, median, market and market.scannedAt, marketKey
 end
-addon.AuctionPrices = { Lookup = Lookup, ItemKey = ItemKey }
+addon.AuctionPrices = { Lookup = Lookup, ItemKey = ItemKey, NormalizeLink = NormalizeLink }
 
 local function StopScan(message)
     scan = nil
@@ -305,6 +318,21 @@ function addon.AuctionHouseCommand(command)
     end
 end
 
+local function TooltipQuantity(tooltip, location)
+    local info = tooltip:GetPrimaryTooltipInfo()
+    if info.getterName == "GetRecipeResultItem" or info.getterName == "GetRecipeResultItemForOrder" then
+        local args = info.getterArgs
+        local isRecraft = info.getterName == "GetRecipeResultItem" and args[3] ~= nil
+        local schematic = C_TradeSkillUI.GetRecipeSchematic(args[1], isRecraft, args[4])
+        -- Native output counts are per craft, not an owned stack. A range has no exact total.
+        if schematic.recipeType == Enum.TradeskillRecipeType.Item and schematic.quantityMin == schematic.quantityMax then
+            return schematic.quantityMin
+        end
+    elseif location then
+        return C_Item.GetStackCount(location)
+    end
+end
+
 local function AddPrices(tooltip, data)
     if data ~= tooltip:GetPrimaryTooltipData() then
         return
@@ -326,7 +354,7 @@ local function AddPrices(tooltip, data)
     end
     tooltip:AddDoubleLine("AH lowest / unit", Money(lowest), 1, 0.82, 0, 1, 1, 1)
     tooltip:AddDoubleLine("AH median (14d) / unit", Money(median), 1, 0.82, 0, 1, 1, 1)
-    local quantity = location and C_Item.GetStackCount(location)
+    local quantity = TooltipQuantity(tooltip, location)
     if quantity and quantity > 1 then
         tooltip:AddDoubleLine("AH lowest ×" .. quantity, Money(lowest and lowest * quantity), 1, 0.82, 0, 1, 1, 1)
         tooltip:AddDoubleLine("AH median (14d) ×" .. quantity, Money(median and median * quantity), 1, 0.82, 0, 1, 1, 1)

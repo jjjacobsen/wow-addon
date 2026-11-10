@@ -88,7 +88,8 @@ Chat reports elapsed time every 10 seconds, first while waiting for the server l
 Soulbound items omit AH rows when their binding is available from the item or tooltip
 Item tooltips show the latest scan's lowest buyout per unit and the median of each day's latest observed minimum over 14 UTC days, including today. Days without an observation are excluded. Repeated scans replace that day's price, not add another sample
 Items absent from the latest scan have no current lowest price but keep their recent history. Missing prices show Unavailable, not zero. Displayed prices round up to whole copper
-Suffixes and bonus/modifier data remain separate. Item source context is ignored so recipe previews and auction links can match. Existing scans remain usable. A complete item link is required, with no fallback to item ID alone
+Suffixes and real bonus/modifier data remain separate. Item source context and the sole native preview bonus 3524 are ignored so previews and auction links can match. Existing scans remain usable. A complete item link is required, with no fallback to item ID alone
+Owned stacks also show AH totals for that stack. Native recipe outputs show totals for a fixed per-craft quantity, not the number owned. Variable output ranges have no exact total
 Prices are account-wide in `JJAuctionPrices`, separate from `JJSettings`, and grouped by region, independent PvP/RP/Hardcore rules, and faction, not realm
 `/jj clear` asks for confirmation, then clears only the current market's prices and history and cancels its active scan. It keeps settings, other markets, and the scan cooldown
 
