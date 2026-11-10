@@ -42,6 +42,12 @@ local function Tooltip(row)
         GameTooltip:AddDoubleLine("Forgone material sale before AH fees", Money(entry.forgone))
         GameTooltip:AddDoubleLine("Margin after material value, before AH fees", Money(entry.materialMargin))
         GameTooltip:AddLine("Farmed inputs cost zero cash, but can have sale value", 0.7, 0.7, 0.7, true)
+    elseif JJLWCharacter.gold.materials == "raw" then
+        GameTooltip:AddDoubleLine("Forgone material sale before AH fees", Money(entry.forgone))
+        GameTooltip:AddLine("All raw inputs are purchased, including leather, hides and supplies such as Silken Thread", 0.7, 0.7, 0.7, true)
+    end
+    if JJLWCharacter.gold.materials == "farm" or JJLWCharacter.gold.materials == "raw" then
+        GameTooltip:AddLine("Purchases use observed vendor quotes, or AH estimates without a quote", 0.7, 0.7, 0.7, true)
         GameTooltip:AddLine("Intermediaries round up to full crafts. Leftovers have no credited value", 0.7, 0.7, 0.7, true)
     end
     for _, issue in ipairs(entry.issues) do GameTooltip:AddLine(issue, 1, 0.3, 0.3, true) end
@@ -139,7 +145,7 @@ function lw.CreateGoldView(window)
         return dropdown
     end
     view.materials = Dropdown(16, 200, "Materials", "materials", {
-        { "Buy everything", "buy" }, { "Farm leather and hides", "farm" },
+        { "Buy finished inputs", "buy" }, { "Buy raw materials", "raw" }, { "Farm leather and hides", "farm" },
     })
     view.prices = Dropdown(236, 160, "Prices", "prices", {
         { "Latest lowest", "lowest" }, { "14-day median", "median" },

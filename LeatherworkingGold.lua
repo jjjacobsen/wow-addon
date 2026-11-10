@@ -93,13 +93,13 @@ local function AddCost(entry, cost, forgone)
     entry.forgone = entry.forgone and forgone and entry.forgone + forgone or nil
 end
 
-local function BuyIngredient(line, entry, farm)
+local function BuyIngredient(line, entry, expanded)
     local key = addon.AuctionPrices.ItemKey(line.link)
-    local vendor = farm and key and JJLWCharacter.goldVendor[key]
+    local vendor = expanded and key and JJLWCharacter.goldVendor[key]
     local price = vendor and vendor.price or Price(line.link)
     local source = JJLWCharacter.gold.prices == "median" and "AH median (14d)" or "AH latest lowest"
     line.source = vendor and "Vendor observed " .. date("%Y-%m-%d %H:%M", vendor.at)
-        or source .. (farm and " estimate (no vendor quote)" or " estimate")
+        or source .. (expanded and " estimate (no vendor quote)" or " estimate")
     line.unitPrice = price
     line.cost = price and price * line.quantity
     AddCost(entry, line.cost, 0)
@@ -127,12 +127,17 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
         local _, _, _, _, _, classID, subclassID = C_Item.GetItemInfoInstant(ingredient.itemID)
         local key = addon.AuctionPrices.ItemKey(link)
         local farm = JJLWCharacter.gold.materials == "farm"
-        if farm and link and farmRaw[ingredient.itemID] and classID == Enum.ItemClass.Tradegoods and subclassID == 6 then
-            local price = SalePrice(link)
-            line.source, line.cost = "Farmed, zero cash", 0
-            line.forgone = price and price * quantity
-            AddCost(entry, 0, line.forgone)
-        elseif farm and ingredient.itemID == 15409 then
+        local expanded = farm or JJLWCharacter.gold.materials == "raw"
+        if expanded and link and farmRaw[ingredient.itemID] and classID == Enum.ItemClass.Tradegoods and subclassID == 6 then
+            if farm then
+                local price = SalePrice(link)
+                line.source, line.cost = "Farmed, zero cash", 0
+                line.forgone = price and price * quantity
+                AddCost(entry, 0, line.forgone)
+            else
+                BuyIngredient(line, entry, expanded)
+            end
+        elseif expanded and ingredient.itemID == 15409 then
             -- Forever 70888: Salt Shaker (19566), not a native LW recipe.
             -- One Deeprock Salt (8150) makes one Refined Deeprock Salt (15409).
             line.expanded = true
@@ -141,8 +146,8 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
                 .. ". Device and cooldown value excluded")
             local salt = { link = ItemLink(8150), itemID = 8150, quantity = quantity, depth = depth + 1 }
             table.insert(entry.lines, salt)
-            BuyIngredient(salt, entry, farm)
-        elseif farm and key and producers[key] then
+            BuyIngredient(salt, entry, expanded)
+        elseif expanded and key and producers[key] then
             local choices = producers[key]
             if #choices ~= 1 then
                 line.source = "Unavailable: multiple LW producers"
@@ -162,7 +167,7 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
                 end
             end
         else
-            BuyIngredient(line, entry, farm)
+            BuyIngredient(line, entry, expanded)
         end
     end
     path[recipeID] = nil
