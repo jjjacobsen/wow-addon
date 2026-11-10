@@ -152,19 +152,27 @@ local function Ingredients(recipeID, crafts, entry, producers, path, depth)
 end
 
 function lw.GoldRows()
-    local rows, hidden, unavailable = {}, 0, 0
-    if not JJLWCatalog then return rows, hidden, unavailable end
+    local rows, hidden, unavailable, gear = {}, 0, 0, 0
+    if not JJLWCatalog then return rows, hidden, unavailable, gear end
     local producers = Producers()
     for recipeID, recipe in pairs(JJLWCatalog.recipes) do
         local link = OutputLink(recipe)
         local eligible, reason = SaleEligibility(link)
         if not recipe.nonItem and eligible ~= false then
-            if not JJLWCharacter.gold.includeUnlearned and JJLWCharacter.learned[recipeID] ~= true then
+            local equipLoc
+            if recipe.itemID then
+                local _, _, _, location = C_Item.GetItemInfoInstant(recipe.itemID)
+                equipLoc = location
+            end
+            if JJLWCharacter.gold.excludeGear and equipLoc and equipLoc ~= ""
+                and equipLoc ~= "INVTYPE_NON_EQUIP_IGNORE" and equipLoc ~= "INVTYPE_BAG" and equipLoc ~= "INVTYPE_QUIVER" then
+                gear = gear + 1
+            elseif not JJLWCharacter.gold.includeUnlearned and JJLWCharacter.learned[recipeID] ~= true then
                 hidden = hidden + 1
             else
                 local item = recipe.itemID and JJLWCatalog.items[recipe.itemID]
                 local name = link and link:match("|h%[(.-)%]|h")
-                local itemAvailable = item and item.loaded and name and name ~= ""
+                local itemAvailable = item and item.loaded and equipLoc ~= nil and name and name ~= ""
                 local entry = {
                     recipeID = recipeID, recipe = recipe, link = itemAvailable and link or nil,
                     name = itemAvailable and link or (recipe.name and recipe.name ~= "" and recipe.name)
@@ -198,12 +206,13 @@ function lw.GoldRows()
         end
         return a.recipeID < b.recipeID
     end)
-    return rows, hidden, unavailable
+    return rows, hidden, unavailable, gear
 end
 
 function lw.InitializeGold()
     JJLWCharacter.gold = JJLWCharacter.gold or { materials = "buy", prices = "lowest", includeUnlearned = false }
     if JJLWCharacter.gold.excludeUnavailable == nil then JJLWCharacter.gold.excludeUnavailable = false end
+    if JJLWCharacter.gold.excludeGear == nil then JJLWCharacter.gold.excludeGear = false end
     JJLWCharacter.goldVendor = JJLWCharacter.goldVendor or {}
     local events = CreateFrame("Frame")
     events:RegisterEvent("MERCHANT_SHOW")

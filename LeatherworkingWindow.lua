@@ -98,6 +98,7 @@ local function CreateCharacterView()
 end
 
 local function SelectView(index)
+    JJLWCharacter.lastTab = index
     PanelTemplates_SetTab(window, index)
     local characterView = index == 1
     window.character:SetShown(characterView)
@@ -407,7 +408,7 @@ local function CreateWindow()
         self:RegisterEvent("PLAYER_LEVEL_UP")
         self:RegisterEvent("SPELLS_CHANGED")
         self:RegisterEvent("ITEM_DATA_LOAD_RESULT")
-        SelectView(1)
+        SelectView(JJLWCharacter.lastTab or 1)
     end)
     window:SetScript("OnHide", function(self) self:UnregisterAllEvents() end)
     window:SetScript("OnEvent", function(_, event, level)

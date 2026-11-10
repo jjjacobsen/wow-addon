@@ -84,7 +84,7 @@ end
 function lw.UpdateGoldView(view)
     view.materials:Update()
     view.prices:Update()
-    local rows, hidden, unavailable = lw.GoldRows()
+    local rows, hidden, unavailable, gear = lw.GoldRows()
     local missingIngredients = false
     for index, entry in ipairs(rows) do
         if not entry.recipe.ingredients then missingIngredients = true end
@@ -121,7 +121,7 @@ function lw.UpdateGoldView(view)
     local status = lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
         or missingIngredients and "Open your own Leatherworking and use /jj lwscan for ingredients"
         or "Hover for ingredients and sources"
-    view.status:SetText(("%d recipes | Hidden: %d unlearned/unknown, %d unavailable | %s"):format(#rows, hidden, unavailable, status))
+    view.status:SetText(("%d shown | Hidden: %d gear, %d unlearned/unknown, %d unavailable | %s"):format(#rows, gear, hidden, unavailable, status))
 end
 
 function lw.CreateGoldView(window)
@@ -144,14 +144,14 @@ function lw.CreateGoldView(window)
         end)
         return dropdown
     end
-    view.materials = Dropdown(16, 270, "Materials", "materials", {
+    view.materials = Dropdown(16, 200, "Materials", "materials", {
         { "Buy everything", "buy" }, { "Farm leather and hides", "farm" },
     })
-    view.prices = Dropdown(306, 206, "Prices", "prices", {
+    view.prices = Dropdown(236, 160, "Prices", "prices", {
         { "Latest lowest", "lowest" }, { "14-day median", "median" },
     })
     local unlearned = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
-    unlearned:SetPoint("TOPLEFT", 536, -55)
+    unlearned:SetPoint("TOPLEFT", 416, -55)
     unlearned.Text:SetText("Include unlearned")
     unlearned:SetChecked(JJLWCharacter.gold.includeUnlearned)
     unlearned:SetScript("OnClick", function(self)
@@ -159,11 +159,19 @@ function lw.CreateGoldView(window)
         lw.UpdateWindow()
     end)
     local unavailable = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
-    unavailable:SetPoint("TOPLEFT", 720, -55)
+    unavailable:SetPoint("TOPLEFT", 586, -55)
     unavailable.Text:SetText("Exclude unavailable")
     unavailable:SetChecked(JJLWCharacter.gold.excludeUnavailable)
     unavailable:SetScript("OnClick", function(self)
         JJLWCharacter.gold.excludeUnavailable = self:GetChecked()
+        lw.UpdateWindow()
+    end)
+    local gear = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
+    gear:SetPoint("TOPLEFT", 772, -55)
+    gear.Text:SetText("Exclude gear")
+    gear:SetChecked(JJLWCharacter.gold.excludeGear)
+    gear:SetScript("OnClick", function(self)
+        JJLWCharacter.gold.excludeGear = self:GetChecked()
         lw.UpdateWindow()
     end)
     Text(view, 16, -92, 862):SetText("Estimates per craft. Sale value and margins exclude AH fees, deposits and relists")
