@@ -196,14 +196,16 @@ UpdateWindow = function()
         button.icon:SetTexture(GetInventoryItemTexture("player", button.slot) or button.emptyTexture)
         if button:IsShown() and button:IsMouseOver() then ShowEquippedTooltip(button) end
     end
-    local rows, baselines, matching = {}, {}, {}
+    local rows, baselines, matching, wearable = {}, {}, {}, {}
     for _, slot in ipairs(lw.slots) do
         if slot[2] ~= 0 then baselines[slot[2]] = EquippedValue(slot[2]) end
     end
     local missing, unresolved, recipeCount = 0, 0, 0
     if catalog then
         for _, item in pairs(catalog.items) do
-            if not item.loaded or (item.slot and (not item.stats or item.requiredLevel == nil)) then
+            if item.slot then wearable[item.itemID] = lw.CanWearArmor(item.itemID) end
+            if not item.loaded or (item.slot and (not item.stats or item.requiredLevel == nil
+                or wearable[item.itemID] == nil)) then
                 missing = missing + 1
             end
         end
@@ -211,7 +213,7 @@ UpdateWindow = function()
             recipeCount = recipeCount + 1
             if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
             local item = recipe.itemID and catalog.items[recipe.itemID]
-            if item and item.slot and item.requiredLevel
+            if item and item.slot and item.requiredLevel and wearable[item.itemID]
                 and (characterView or options.slot == 0 or options.slot == item.slot)
                 and item.requiredLevel <= (options.maxLevel or currentLevel) then
                 matching[item.slot] = true
@@ -403,6 +405,7 @@ local function CreateWindow()
         currentLevel = UnitLevel("player")
         self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         self:RegisterEvent("PLAYER_LEVEL_UP")
+        self:RegisterEvent("SPELLS_CHANGED")
         self:RegisterEvent("ITEM_DATA_LOAD_RESULT")
         SelectView(1)
     end)

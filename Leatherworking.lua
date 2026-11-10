@@ -4,6 +4,20 @@ addon.Leatherworking = lw
 local enabled, active, captured, queued
 local QueueRefresh
 local events = CreateFrame("Frame")
+local armorProficiencies = {
+    [Enum.ItemArmorSubclass.Cloth] = 9078,
+    [Enum.ItemArmorSubclass.Leather] = 9077,
+    [Enum.ItemArmorSubclass.Mail] = 8737,
+    [Enum.ItemArmorSubclass.Plate] = 750,
+}
+
+function lw.CanWearArmor(itemID)
+    local _, _, _, equipLoc, _, classID, subclassID = C_Item.GetItemInfoInstant(itemID)
+    if classID == nil or subclassID == nil then return nil end
+    if equipLoc == "INVTYPE_CLOAK" or classID ~= Enum.ItemClass.Armor then return true end
+    local spellID = armorProficiencies[subclassID]
+    return not spellID or C_SpellBook.IsSpellKnown(spellID)
+end
 
 lw.slots = {
     { "All slots", 0 }, { "Head", 1 }, { "Shoulder", 3 }, { "Chest", 5 },
