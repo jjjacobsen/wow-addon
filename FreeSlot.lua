@@ -25,18 +25,22 @@ local function ScanBags()
                 if not info.hyperlink or info.hyperlink == "" or not info.stackCount or info.stackCount < 1 then
                     return nil, "Waiting for item data"
                 end
-                local price = select(11, C_Item.GetItemInfo(info.hyperlink))
+                local price, classID = select(11, C_Item.GetItemInfo(info.hyperlink))
                 local guid = C_Item.GetItemGUID(ItemLocation:CreateFromBagAndSlot(bag, slot))
-                if price == nil or not guid or guid == "" then
+                if price == nil or classID == nil or not guid or guid == "" then
                     return nil, "Waiting for item data"
                 end
-                local total = price * info.stackCount
-                if not cheapest or total < cheapest.total then
-                    cheapest = {
-                        bag = bag, slot = slot, guid = guid, itemID = info.itemID,
-                        link = info.hyperlink, icon = info.iconFileID,
-                        count = info.stackCount, price = price, total = total,
-                    }
+                local questInfo = C_Container.GetContainerItemQuestInfo(bag, slot)
+                -- A questID marks a quest starter, whether or not its quest is active.
+                if not questInfo.isQuestItem and not questInfo.questID and classID ~= Enum.ItemClass.Questitem then
+                    local total = price * info.stackCount
+                    if not cheapest or total < cheapest.total then
+                        cheapest = {
+                            bag = bag, slot = slot, guid = guid, itemID = info.itemID,
+                            link = info.hyperlink, icon = info.iconFileID,
+                            count = info.stackCount, price = price, total = total,
+                        }
+                    end
                 end
             end
         end

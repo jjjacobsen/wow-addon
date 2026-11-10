@@ -72,8 +72,8 @@ Saved Bank starts enabled. Toggle it in `/jj`, then click Reload. Close its wind
 ## Free Slot
 
 Click Free Slot beside Bank in the combined backpack header or use `/jj free`. The window shows the carried stack with the lowest total vendor value, including zero-value items, and outlines its native bag slot
-Value is the unit vendor price times the actual stack count, not auction value. Missing data or locked items pause selection. Bank contents and equipped items are not scanned, but all carried item categories and profession bags are included
-Next skips that item ID until you close the window. Keep excludes that item ID for this character across sessions. Use Keep list and Remove to reverse a Keep choice. There are no built-in quest, consumable, tool, or equipment exclusions
+Value is the unit vendor price times the actual stack count, not auction value. Missing data or locked items pause selection. Bank contents and equipped items are not scanned. All carried bags, including profession bags, are scanned. Quest items and quest starters identified by the client are excluded
+Next skips that item ID until you close the window. Keep excludes that item ID for this character across sessions. Use Keep list and Remove to reverse a Keep choice. There are no built-in consumable, tool, or equipment exclusions
 Destroy… checks the exact stack again, then opens Blizzard's unchanged delete confirmation. Valuable items still require typed DELETE. No item is deleted without native confirmation. The cursor must be empty, and the helper closes in combat. Normal bag dragging is unchanged
 Free Slot starts enabled. Toggle it in `/jj`, then click Reload. Close with Close, the top-right close button, or Escape
 
