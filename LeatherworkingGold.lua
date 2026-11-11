@@ -188,6 +188,7 @@ function lw.GoldRows()
     local producers = Producers()
     local maxSkill = lw.GoldMaxSkill()
     for recipeID, recipe in pairs(JJLWCatalog.recipes) do
+        local requiredSkill = lw.RequiredSkill(recipeID)
         local link = OutputLink(recipe)
         local eligible, reason = SaleEligibility(link)
         if not recipe.nonItem and eligible ~= false then
@@ -201,15 +202,16 @@ function lw.GoldRows()
                 gear = gear + 1
             elseif not JJLWCharacter.gold.includeUnlearned and JJLWCharacter.learned[recipeID] ~= true then
                 hidden = hidden + 1
-            elseif JJLWCharacter.learned[recipeID] ~= true and maxSkill and recipe.requiredSkill
-                and recipe.requiredSkill > maxSkill then
+            elseif JJLWCharacter.learned[recipeID] ~= true and maxSkill and requiredSkill
+                and requiredSkill > maxSkill then
                 hidden = hidden + 1
             else
                 local item = recipe.itemID and JJLWCatalog.items[recipe.itemID]
                 local name = link and link:match("|h%[(.-)%]|h")
                 local itemAvailable = item and item.loaded and equipLoc ~= nil and name and name ~= ""
                 local entry = {
-                    recipeID = recipeID, recipe = recipe, link = itemAvailable and link or nil,
+                    recipeID = recipeID, recipe = recipe, requiredSkill = requiredSkill,
+                    link = itemAvailable and link or nil,
                     name = itemAvailable and link or (recipe.name and recipe.name ~= "" and recipe.name)
                         or (recipe.itemID and ("Item " .. recipe.itemID)) or ("Recipe " .. recipeID),
                     cash = 0, forgone = 0, lines = {}, issues = {},

@@ -84,6 +84,8 @@ local function Finish(message, complete)
     run.ticker:Cancel()
     run.timeout:Cancel()
     if complete then
+        -- Keep trainer observations made before or during this manual scan.
+        run.catalog.trainerRequirements = JJLWCatalog and JJLWCatalog.trainerRequirements
         -- Publish only a finished run. Browsers keep using the saved catalog until now.
         JJLWCatalog = run.catalog
         JJLWCharacter.learned = run.learned
@@ -213,9 +215,9 @@ local function Tick()
             if not item.loaded or (item.slot and not item.stats) then missing = missing + 1 end
         end
         local unresolved, requirements = 0, 0
-        for _, recipe in pairs(run.catalog.recipes) do
+        for recipeID, recipe in pairs(run.catalog.recipes) do
             if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
-            if recipe.requiredSkill then requirements = requirements + 1 end
+            if lw.RequiredSkill(recipeID, recipe) then requirements = requirements + 1 end
         end
         Finish(("complete: %d recipes, %d items unavailable, %d outputs unresolved, %d LW requirements known")
             :format(#run.recipeIDs, missing, unresolved, requirements), true)
@@ -314,6 +316,7 @@ addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
         JJLWCharacter.stat = "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"
     end
     lw.InitializeGold()
+    lw.InitializeTrainer()
     events:RegisterEvent("TRADE_SKILL_CLOSE")
     events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGING")
     events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGED")
