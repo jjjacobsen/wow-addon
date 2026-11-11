@@ -46,6 +46,7 @@ end
 addon.RegisterFeature("cooking", "Cooking profit", function(value)
     enabled = value
     if not enabled then return end
+    addon.AddMinimapButton("cooking", "Cooking", 2550, 210, addon.CookingCommand)
     JJCookingCharacter = JJCookingCharacter or { learned = {} }
     cooking.InitializeGold()
     cooking.InitializeTrainer()

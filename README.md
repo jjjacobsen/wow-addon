@@ -95,7 +95,8 @@ Prices are account-wide in `JJAuctionPrices`, separate from `JJSettings`, and gr
 
 ## Leatherworking gear
 
-Run `/reload` after installing. Use `/jj lw` to open the browser
+Restart WoW after installing the new files. Left-click the Leatherworking minimap icon or use `/jj lw` to toggle the browser
+The icon starts at 9 o'clock. Left-drag to move it around the minimap. Its position is saved account-wide in `JJSettings.minimapButtons`. It appears only while Leatherworking gear is enabled
 The last tab is saved per character, with Character selected on first use. Character shows your native character model and read-only equipped armor icons on the left. Hover for native equipped-item tooltips
 Choose a stat and max equip level to see one top result for each of the nine supported slots on the right. Each result shows its item link and selected-stat difference from equipped gear. Results use the highest stat value per slot, which gives the largest difference when equipped data is available. Equal values sort by item ID, then recipe ID
 Character ignores the Table slot filter and keeps it unchanged. Table keeps the full table, slot selector, sorting, and native modified-click link actions. Both tabs share stat, max equip level, Upgrades only, and the catalog
@@ -119,7 +120,9 @@ Leatherworking gear starts enabled and controls all three tabs. Toggle it in `/j
 
 ## Cooking profit
 
-Restart WoW after installing the new files. Use `/jj cook` for the separate Cooking window. Toggle Cooking profit in `/jj`, then click Reload. This feature does not need Leatherworking enabled
+Restart WoW after installing the new files. Left-click the Cooking minimap icon or use `/jj cook` to toggle the separate Cooking window
+The icon starts at 8 o'clock. Left-drag to move it around the minimap. Its position is saved account-wide in `JJSettings.minimapButtons`. It appears only while Cooking profit is enabled
+Toggle Cooking profit in `/jj`, then click Reload. This feature does not need Leatherworking enabled
 Open your own native Cooking, wait for recipes, then use `/jj cookscan`. Keep Cooking open until completion, up to 60 seconds. The manual scan saves learned and unlearned recipes, ingredients, minimum yields, and available pattern skill requirements. Closing Cooking, changing its source, or a timeout keeps the previous catalog. Failed item loads do not block completion. Browse anywhere after capture
 Recipes and trainer requirements are account-wide in `JJCookingCatalog`. Learned status, filters, and observed vendor prices are per character in `JJCookingCharacter`. Visit Cooking trainers after capture to observe exact native recipe spell IDs and skill ranks. Pattern mapping uses Forever 1.60.1.70888 data without runtime web access. Missing or conflicting requirements show `-`
 Search, Prices, Include unlearned, and Max Cooking skill work like Leatherworking Gold. Auto uses your native base Cooking rank, without bonuses. Learned recipes and unknown requirements remain eligible above the cap. Cooking has no Character/Table tabs, gear filter, or Farm mode

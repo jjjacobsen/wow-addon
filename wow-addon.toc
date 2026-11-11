@@ -6,6 +6,7 @@
 ## SavedVariablesPerCharacter: JJTankMode, JJDamageMeterEnabled, JJSavedBank, JJFreeSlotKeep, JJLWCharacter, JJCookingCharacter
 
 Core.lua
+MinimapButtons.lua
 ProfessionCatalog.lua
 ProfessionTrainer.lua
 ProfessionProfit.lua
