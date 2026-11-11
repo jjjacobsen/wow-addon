@@ -205,6 +205,7 @@ function addon.AttachProfessionProfit(profession)
                             or (recipe.itemID and ("Item " .. recipe.itemID)) or ("Recipe " .. recipeID),
                         cash = 0, forgone = 0, lines = {}, issues = {},
                     }
+                    entry.supply, entry.listings = addon.AuctionPrices.Supply(link)
                     Ingredients(recipeID, 1, entry, producers, {}, 0)
                     local price, reason = SalePrice(link, eligible, reason)
                     entry.sale = price and recipe.quantity and price * recipe.quantity

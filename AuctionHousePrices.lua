@@ -128,7 +128,15 @@ local function Lookup(link)
     end
     return lowest, median, market and market.scannedAt, marketKey
 end
-addon.AuctionPrices = { Lookup = Lookup, ItemKey = ItemKey, NormalizeLink = NormalizeLink }
+local function Supply(link)
+    local market = JJAuctionPrices and JJAuctionPrices.markets[MarketKey()]
+    local key = ItemKey(link)
+    if not market or not market.supply or not key then return end
+    local supply = market.supply[key]
+    if supply then return supply.units, supply.listings end
+    return 0, 0
+end
+addon.AuctionPrices = { Lookup = Lookup, Supply = Supply, ItemKey = ItemKey, NormalizeLink = NormalizeLink }
 
 local function StopScan(message)
     scan = nil
@@ -151,6 +159,7 @@ local function CommitScan()
     end
     JJAuctionPrices.markets[scan.marketKey] = {
         lowest = scan.lowest,
+        supply = scan.supply,
         history = history,
         scannedAt = GetServerTime(),
     }
@@ -175,6 +184,10 @@ local function ReadAuction(index)
         if not scan.lowest[key] or price < scan.lowest[key] then
             scan.lowest[key] = price
         end
+        local supply = scan.supply[key] or { units = 0, listings = 0 }
+        scan.supply[key] = supply
+        supply.units = supply.units + count
+        supply.listings = supply.listings + 1
     end
     return true
 end
@@ -266,7 +279,7 @@ local function StartScan()
     end
     local startedAt = GetTime()
     scan = {
-        marketKey = MarketKey(), lowest = {}, pending = {}, pendingIndex = 1, index = 0, processed = 0,
+        marketKey = MarketKey(), lowest = {}, supply = {}, pending = {}, pendingIndex = 1, index = 0, processed = 0,
         startedAt = startedAt, nextProgress = startedAt + 10, deadline = startedAt + scanTimeout,
     }
     JJAuctionPrices.lastScanAttempt = now
