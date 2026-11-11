@@ -9,6 +9,7 @@ Core.lua
 MinimapButtons.lua
 ProfessionSkillRequirements.lua
 ProfessionCatalog.lua
+VendorPrices.lua
 ProfessionProfit.lua
 ProfessionProfitWindow.lua
 Leatherworking.lua

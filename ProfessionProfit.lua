@@ -82,12 +82,10 @@ function addon.AttachProfessionProfit(profession)
     end
 
     local function BuyIngredient(line, entry)
-        local key = addon.AuctionPrices.ItemKey(line.link)
-        local vendor = key and character.goldVendor[key]
-        local price = vendor and vendor.price or Price(line.link)
+        local vendor = addon.VendorPrices[line.itemID]
+        local price = vendor or Price(line.link)
         local source = character.gold.prices == "median" and "AH median (14d)" or "AH latest lowest"
-        line.source = vendor and "Vendor observed " .. date("%Y-%m-%d %H:%M", vendor.at)
-            or source .. " estimate (no vendor quote)"
+        line.source = vendor and "Vendor base price" or source .. " estimate"
         line.unitPrice = price
         line.cost = price and price * line.quantity
         AddCost(entry, line.cost, 0)
@@ -241,24 +239,6 @@ function addon.AttachProfessionProfit(profession)
         Inputs()
         character.gold = character.gold or { materials = "buy", prices = "lowest", includeUnlearned = false }
         if profession.excludeGear and character.gold.excludeGear == nil then character.gold.excludeGear = false end
-        character.goldVendor = character.goldVendor or {}
-        local events = CreateFrame("Frame")
-        events:RegisterEvent("MERCHANT_SHOW")
-        events:RegisterEvent("MERCHANT_UPDATE")
-        events:SetScript("OnEvent", function()
-            Inputs()
-            if not catalog then return end
-            for index = 1, GetMerchantNumItems() do
-                local itemID = GetMerchantItemID(index)
-                local item = itemID and catalog.items[itemID]
-                if item and item.ingredient then
-                    local name, _, price, stackCount, _, _, _, extendedCost, currencyID = GetMerchantItemInfo(index)
-                    local key = addon.AuctionPrices.ItemKey(GetMerchantItemLink(index))
-                    if key and name and not extendedCost and not currencyID and stackCount > 0 then
-                        character.goldVendor[key] = { price = price / stackCount, at = GetServerTime() }
-                    end
-                end
-            end
-        end)
+        character.goldVendor = nil
     end
 end
