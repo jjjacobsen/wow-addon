@@ -2,7 +2,7 @@ local _, addon = ...
 local lw = addon.Leatherworking
 
 -- Explicit raw materials only. Cured hides expand through native LW recipes.
--- Scales and special leathers are bought unless a native LW producer exists.
+-- Other scales and special leathers are bought unless a native LW producer exists.
 -- Native 70862 item data also must identify each as Tradegoods / Leather (subclass 6).
 local farmRaw = {
     [2934] = true, -- Ruined Leather Scraps
@@ -11,6 +11,7 @@ local farmRaw = {
     [4234] = true, -- Heavy Leather
     [4304] = true, -- Thick Leather
     [8170] = true, -- Rugged Leather
+    [15417] = true, -- Devilsaur Leather
     [783] = true, -- Light Hide
     [4232] = true, -- Medium Hide
     [4235] = true, -- Heavy Hide

@@ -90,7 +90,7 @@ function lw.UpdateGoldView(view)
         row.entry = entry
         row.item:SetText(entry.name)
         row.recipe:SetText("#" .. entry.recipeID .. (entry.needsRecipe and " | Unlearned/unknown recipe required" or " | Learned"))
-        row.skill:SetText(entry.requiredSkill or "Unknown")
+        row.skill:SetText(entry.requiredSkill or "-")
         row.quantity:SetText(entry.recipe.quantity or "-")
         row.cost:SetText(Money(entry.cash))
         row.sale:SetText(Money(entry.sale))
