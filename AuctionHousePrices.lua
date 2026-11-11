@@ -300,6 +300,7 @@ StaticPopupDialogs.JJ_CLEAR_AUCTION_PRICES = {
         Say("Cleared auction prices and history for " .. marketKey)
         addon.Leatherworking.UpdateWindow()
         addon.Cooking.UpdateWindow()
+        addon.FirstAid.UpdateWindow()
     end,
     timeout = 0,
     whileDead = true,

@@ -130,6 +130,16 @@ Buy finished inputs prices ingredients directly. Buy raw materials recursively e
 Rows and nested tooltips use the shared Gold columns and current-market AH cache. Minimum yield multiplies sale value. Missing prices, unsupported recipes, ambiguous producers, cycles, and outputs that cannot be auctioned hide affected rows. Margins are before AH fees. There are no extra AH scans or automatic crafts, purchases, or listings
 Calculations run only on opening the window, changing a filter, or confirming AH price clearing. Recipe capture, learning, trainer/vendor observations, item events, and AH scan completion do not refresh profit rows. Reopen the window to use those inputs. Hidden windows do not calculate
 
+## First Aid profit
+
+Use `/reload` after installing, then left-click the First Aid minimap icon or use `/jj fa` to toggle its separate window. The icon starts at 7 o'clock. Left-drag to move it. Its position is saved in `JJSettings.minimapButtons.firstAid`
+First Aid profit starts enabled. Toggle it in `/jj`, then click Reload. It does not need Cooking or Leatherworking enabled
+Open your own native First Aid, wait for recipes, then use `/jj fascan`. Keep it open until completion, up to 60 seconds. Capture, cancellation, and item loading work like Cooking, including native ingredients and minimum yields for bandages, potions, kits, and camping recipes
+Recipes and trainer requirements are account-wide in `JJFirstAidCatalog`. Learned status, filters, and observed vendor prices are per character in `JJFirstAidCharacter`. Visit First Aid trainers after capture to observe requirements. The Forever 1.60.1.70888 manual map includes base skill 129 and child 2942. Missing or conflicting requirements show `-`
+Search, Materials, Prices, Include unlearned, and Max First Aid skill work like Cooking. Auto uses your native base rank without bonuses. Learned recipes and unknown requirements remain eligible above the cap. No gear filter or Farm mode
+Buy finished inputs prices ingredients directly. Buy raw materials expands native First Aid intermediaries, rounds up to whole crafts, and gives leftovers no sale credit. Both modes use observed coin-only vendor quotes, then the selected AH price. Learned-only results require every expanded recipe to be learned. Missing prices or unsupported outputs hide rows. Margins are before AH fees
+Calculations run only on opening the window, changing a filter, or confirming AH price clearing. Capture, learning, trainer/vendor observations, item events, and AH scan completion do not refresh profit rows. Reopen the window to use those inputs
+
 ## Add tweaks
 
 Add each feature as a separate Lua file and list its path after `Core.lua` in `wow-addon.toc`

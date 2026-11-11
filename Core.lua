@@ -147,12 +147,16 @@ local function CreateSettings()
             addon.CookingCommand()
         elseif command == "cookscan" then
             addon.CookingScanCommand()
+        elseif command == "fa" then
+            addon.FirstAidCommand()
+        elseif command == "fascan" then
+            addon.FirstAidScanCommand()
         elseif command == "tank" then
             ToggleTankMode()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj cook, /jj cookscan")
+            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj cook, /jj cookscan, /jj fa, /jj fascan")
         end
     end
 end
