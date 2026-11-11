@@ -139,6 +139,11 @@ local function CreateSettings()
             addon.SavedBankCommand()
         elseif command == "free" then
             addon.FreeSlotCommand()
+        elseif command == "empty" then
+            local lw = addon.Leatherworking
+            lw.emptySkillOnly = not lw.emptySkillOnly
+            lw.UpdateWindow()
+            print("wow-addon: Empty LW skill filter " .. (lw.emptySkillOnly and "on" or "off"))
         elseif command == "lw" then
             addon.LeatherworkingCommand()
         elseif command == "lwscan" then
@@ -164,7 +169,7 @@ local function CreateSettings()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan, /jj tailor, /jj tailorscan")
+            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj empty, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan, /jj tailor, /jj tailorscan")
         end
     end
 end
