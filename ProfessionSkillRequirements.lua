@@ -33,7 +33,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/spell=1270632/critter-cookie
 -- Solid Dynamite, Quick Facts Requires Engineering (175), not its output tooltip:
 -- https://www.wowhead.com/forever/spell=12586/solid-dynamite
--- Partial coverage: 1301 recipe spells. Missing or conflicting gates stay unknown.
+-- Partial coverage: 1302 recipe spells. Missing or conflicting gates stay unknown.
 -- Counts identify verified requirements, not currently obtainable recipes. Saved
 -- catalogs can include outputs whose availability is unverified. Neither a missing
 -- rank nor a client skill-line entry proves that a recipe is available in Forever.
@@ -49,7 +49,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/skill=202/engineering
 -- https://www.wowhead.com/forever/skill=197/tailoring
 addon.ProfessionSkillRequirements = {
-    [165] = { -- Leatherworking, 541 verified recipes
+    [165] = { -- Leatherworking, 542 verified recipes
         -- https://guide.wow4ever.se/en/professions/leatherworking
         [2149] = 1, -- Forever Guide starter
         [2152] = 1, -- Forever Guide starter
@@ -171,6 +171,7 @@ addon.ProfessionSkillRequirements = {
         [10574] = 225, -- item 8408
         [10619] = 225, -- Wowhead spell page, user-confirmed
         [10621] = 225, -- Wowhead spell page, user-confirmed
+        [10647] = 250, -- user-confirmed Feathered Breastplate
         [14930] = 200, -- archived native trainer
         [14932] = 200, -- archived native trainer
         [16650] = 245, -- item 12691
