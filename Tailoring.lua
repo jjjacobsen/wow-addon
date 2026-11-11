@@ -47,7 +47,8 @@ end
 addon.RegisterFeature("tailoring", "Tailoring profit", function(value)
     enabled = value
     if not enabled then return end
-    addon.AddMinimapButton("tailoring", "Tailoring", 3908, 120, addon.TailoringCommand)
+    addon.AddMinimapButton("tailoring", "Tailoring", 3908, 120,
+        addon.TailoringCommand, tailoring.OpenAndScan)
     JJTailoringCharacter = JJTailoringCharacter or { learned = {} }
     tailoring.InitializeGold()
     tailoring.InitializeTrainer()

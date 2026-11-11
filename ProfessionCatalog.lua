@@ -1,4 +1,13 @@
 local _, addon = ...
+local pendingMinimapScan
+
+local function ClearPendingMinimapScan(message)
+    local request = pendingMinimapScan
+    request.timeout:Cancel()
+    if request.check then request.check:Cancel() end
+    pendingMinimapScan = nil
+    if message then print("wow-addon: " .. request.profession.name .. " scan request " .. message) end
+end
 
 -- Native profession capture. Only an explicit scan publishes a new catalog.
 function addon.AttachProfessionCatalog(profession)
@@ -227,8 +236,64 @@ function addon.AttachProfessionCatalog(profession)
 
     function profession.IsRefreshing() return active ~= nil end
 
+    local function PendingForProfession()
+        return pendingMinimapScan and pendingMinimapScan.profession == profession
+    end
+
+    local function ScheduleMinimapScan()
+        if not PendingForProfession() or pendingMinimapScan.check then return end
+        -- Run after native frame handlers and source-change cancellation for this event.
+        pendingMinimapScan.check = C_Timer.NewTimer(0, function()
+            pendingMinimapScan.check = nil
+            if not ScanReady() or #C_TradeSkillUI.GetAllRecipeIDs() == 0 then return end
+            ClearPendingMinimapScan()
+            profession.ScanRecipes()
+        end)
+    end
+
+    function profession.OpenAndScan()
+        if active then
+            profession.ScanRecipes()
+            return
+        end
+        if PendingForProfession() then
+            print("wow-addon: Waiting for your own " .. profession.name .. " recipes to scan")
+            return
+        end
+        if pendingMinimapScan then ClearPendingMinimapScan("cancelled by another minimap request") end
+        if ScanReady() and #C_TradeSkillUI.GetAllRecipeIDs() > 0 then
+            profession.ScanRecipes()
+            return
+        end
+        local known = false
+        for _, index in pairs({ GetProfessions() }) do
+            local _, _, _, _, _, _, skillLine = GetProfessionInfo(index)
+            if skillLine == profession.id then known = true break end
+        end
+        if not known then
+            print("wow-addon: This character has not learned " .. profession.name)
+            return
+        end
+        -- Build 70888 accepts a skill line ID from a hardware click, not a spell rank.
+        if not C_TradeSkillUI.OpenTradeSkill(profession.id) then
+            print("wow-addon: Could not open your own " .. profession.name .. ". No scan started")
+            return
+        end
+        -- TRADE_SKILL_CLOSE is synchronous. Arm only after opening replaces the old window.
+        pendingMinimapScan = {
+            profession = profession,
+            timeout = C_Timer.NewTimer(10, function()
+                ClearPendingMinimapScan("timed out after 10 seconds. Native recipes are not ready")
+            end),
+        }
+        print("wow-addon: Waiting for your own " .. profession.name .. " recipes to scan")
+        ScheduleMinimapScan()
+    end
+
     function profession.InitializeCatalog()
         events:RegisterEvent("TRADE_SKILL_CLOSE")
+        events:RegisterEvent("TRADE_SKILL_SHOW")
+        events:RegisterEvent("TRADE_SKILL_LIST_UPDATE")
         events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGING")
         events:RegisterEvent("TRADE_SKILL_DATA_SOURCE_CHANGED")
         events:RegisterEvent("NEW_RECIPE_LEARNED")
@@ -252,8 +317,15 @@ function addon.AttachProfessionCatalog(profession)
                 Character().learned[itemID] = true
                 if active then active.learned[itemID] = true end
                 profession.UpdateWindow(false)
+            elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_LIST_UPDATE" then
+                ScheduleMinimapScan()
             else
                 CancelScan()
+                if event == "TRADE_SKILL_CLOSE" and PendingForProfession() then
+                    ClearPendingMinimapScan("cancelled because the native profession closed")
+                elseif event == "TRADE_SKILL_DATA_SOURCE_CHANGED" then
+                    ScheduleMinimapScan()
+                end
             end
         end)
     end

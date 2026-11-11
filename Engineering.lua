@@ -47,7 +47,8 @@ end
 addon.RegisterFeature("engineering", "Engineering profit", function(value)
     enabled = value
     if not enabled then return end
-    addon.AddMinimapButton("engineering", "Engineering", 4036, 150, addon.EngineeringCommand)
+    addon.AddMinimapButton("engineering", "Engineering", 4036, 150,
+        addon.EngineeringCommand, engineering.OpenAndScan)
     JJEngineeringCharacter = JJEngineeringCharacter or { learned = {} }
     engineering.InitializeGold()
     engineering.InitializeTrainer()

@@ -86,7 +86,8 @@ end
 addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
     enabled = value
     if not enabled then return end
-    addon.AddMinimapButton("leatherworking", "Leatherworking", 2108, 180, addon.LeatherworkingCommand)
+    addon.AddMinimapButton("leatherworking", "Leatherworking", 2108, 180,
+        addon.LeatherworkingCommand, lw.OpenAndScan)
     JJLWCharacter = JJLWCharacter or { stat = "ITEM_MOD_INTELLECT_SHORT", slot = 0, learned = {} }
     if JJLWCharacter.stat == "ITEM_MOD_SPELL_POWER_SHORT" then
         JJLWCharacter.stat = "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"

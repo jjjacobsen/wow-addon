@@ -1,6 +1,6 @@
 local _, addon = ...
 
-function addon.AddMinimapButton(key, label, spellID, defaultAngle, onClick)
+function addon.AddMinimapButton(key, label, spellID, defaultAngle, onClick, onRightClick)
     JJSettings.minimapButtons = JJSettings.minimapButtons or {}
     local settings = JJSettings.minimapButtons
     local angle = settings[key] or defaultAngle
@@ -8,7 +8,7 @@ function addon.AddMinimapButton(key, label, spellID, defaultAngle, onClick)
     local button = CreateFrame("Button", nil, Minimap)
     button:SetSize(32, 32)
     button:SetFrameLevel(Minimap:GetFrameLevel() + 5)
-    button:RegisterForClicks("LeftButtonUp")
+    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:RegisterForDrag("LeftButton")
 
     local icon = button:CreateTexture(nil, "ARTWORK")
@@ -39,7 +39,13 @@ function addon.AddMinimapButton(key, label, spellID, defaultAngle, onClick)
         settings[key] = angle
     end
 
-    button:SetScript("OnClick", onClick)
+    button:SetScript("OnClick", function(self, mouseButton)
+        if mouseButton == "RightButton" then
+            onRightClick()
+        else
+            onClick(self, mouseButton)
+        end
+    end)
     button:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:SetText(label)

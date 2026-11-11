@@ -46,7 +46,8 @@ end
 addon.RegisterFeature("firstAid", "First Aid profit", function(value)
     enabled = value
     if not enabled then return end
-    addon.AddMinimapButton("firstAid", "First Aid", 3273, 240, addon.FirstAidCommand)
+    addon.AddMinimapButton("firstAid", "First Aid", 3273, 240,
+        addon.FirstAidCommand, firstAid.OpenAndScan)
     JJFirstAidCharacter = JJFirstAidCharacter or { learned = {} }
     firstAid.InitializeGold()
     firstAid.InitializeTrainer()
