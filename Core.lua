@@ -155,12 +155,16 @@ local function CreateSettings()
             addon.EngineeringCommand()
         elseif command == "engscan" then
             addon.EngineeringScanCommand()
+        elseif command == "tailor" then
+            addon.TailoringCommand()
+        elseif command == "tailorscan" then
+            addon.TailoringScanCommand()
         elseif command == "tank" then
             ToggleTankMode()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan")
+            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan, /jj tailor, /jj tailorscan")
         end
     end
 end

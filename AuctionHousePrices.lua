@@ -302,6 +302,7 @@ StaticPopupDialogs.JJ_CLEAR_AUCTION_PRICES = {
         addon.Cooking.UpdateWindow()
         addon.FirstAid.UpdateWindow()
         addon.Engineering.UpdateWindow()
+        addon.Tailoring.UpdateWindow()
     end,
     timeout = 0,
     whileDead = true,
