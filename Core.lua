@@ -143,12 +143,16 @@ local function CreateSettings()
             addon.LeatherworkingCommand()
         elseif command == "lwscan" then
             addon.LeatherworkingScanCommand()
+        elseif command == "cook" then
+            addon.CookingCommand()
+        elseif command == "cookscan" then
+            addon.CookingScanCommand()
         elseif command == "tank" then
             ToggleTankMode()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan")
+            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj cook, /jj cookscan")
         end
     end
 end

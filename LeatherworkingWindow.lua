@@ -277,20 +277,7 @@ end
 lw.UpdateWindow = UpdateWindow
 
 local function CreateWindow()
-    window = CreateFrame("Frame", "JJLeatherworkingFrame", UIParent, "BasicFrameTemplate")
-    window:Hide()
-    window:SetSize(902, 548)
-    window:SetPoint("CENTER")
-    window:SetFrameStrata("DIALOG")
-    window:SetToplevel(true)
-    window:EnableMouse(true)
-    window:SetMovable(true)
-    window:SetClampedToScreen(true)
-    window:RegisterForDrag("LeftButton")
-    window:SetScript("OnDragStart", window.StartMoving)
-    window:SetScript("OnDragStop", window.StopMovingOrSizing)
-    window.TitleText:SetText("Leatherworking gear")
-    table.insert(UISpecialFrames, "JJLeatherworkingFrame")
+    window = addon.CreateProfessionWindow("JJLeatherworkingFrame", "Leatherworking gear")
 
     for index, label in ipairs({ "Character", "Table", "Gold making" }) do
         local tab = CreateFrame("Button", nil, window, "PanelTabButtonTemplate")

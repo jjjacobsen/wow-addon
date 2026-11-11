@@ -117,6 +117,16 @@ After collecting ingredients, visit vendors to record this character's observed 
 Hover a row for ingredient quantities, costs, and recipe requirements. Nested inputs appear beneath their intermediaries. Farm mode shows cash costs, not the sale value of farmed materials. All sale values and comparisons are gross estimates before AH fees because the exact Forever cut is not verified. Deposits and relists are excluded. Unknown prices never count as zero. Confirmed soulbound, account-bound, and other unsupported output bindings are hidden. Unknown output binding also hides the row. There are no sales predictions, automatic crafts, purchases, or listings
 Leatherworking gear starts enabled and controls all three tabs. Toggle it in `/jj`, then click Reload. Close the browser with its top-right close button or Escape
 
+## Cooking profit
+
+Restart WoW after installing the new files. Use `/jj cook` for the separate Cooking window. Toggle Cooking profit in `/jj`, then click Reload. This feature does not need Leatherworking enabled
+Open your own native Cooking, wait for recipes, then use `/jj cookscan`. Keep Cooking open until completion, up to 60 seconds. The manual scan saves learned and unlearned recipes, ingredients, minimum yields, and available pattern skill requirements. Closing Cooking, changing its source, or a timeout keeps the previous catalog. Failed item loads do not block completion. Browse anywhere after capture
+Recipes and trainer requirements are account-wide in `JJCookingCatalog`. Learned status, filters, and observed vendor prices are per character in `JJCookingCharacter`. Visit Cooking trainers after capture to observe exact native recipe spell IDs and skill ranks. Pattern mapping uses Forever 1.60.1.70888 data without runtime web access. Missing or conflicting requirements show `-`
+Search, Prices, Include unlearned, and Max Cooking skill work like Leatherworking Gold. Auto uses your native base Cooking rank, without bonuses. Learned recipes and unknown requirements remain eligible above the cap. Cooking has no Character/Table tabs, gear filter, or Farm mode
+Buy finished inputs prices ingredients directly. Buy raw materials recursively expands native Cooking intermediaries, rounds up to whole crafts, and gives leftover output no sale credit. Both modes use observed coin-only vendor quotes for purchased ingredients, then the selected AH price when no quote exists. Neither mode selects the cheapest route. Learned-only rows require every expanded recipe to be learned
+Rows and nested tooltips use the shared Gold columns and current-market AH cache. Minimum yield multiplies sale value. Missing prices, unsupported recipes, ambiguous producers, cycles, and outputs that cannot be auctioned hide affected rows. Margins are before AH fees. There are no extra AH scans or automatic crafts, purchases, or listings
+Calculations run only on opening the window, changing a filter, or confirming AH price clearing. Recipe capture, learning, trainer/vendor observations, item events, and AH scan completion do not refresh profit rows. Reopen the window to use those inputs. Hidden windows do not calculate
+
 ## Add tweaks
 
 Add each feature as a separate Lua file and list its path after `Core.lua` in `wow-addon.toc`
