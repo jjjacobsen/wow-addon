@@ -381,7 +381,8 @@ local function AddPrices(tooltip, data)
     end
     for _, line in ipairs(data.lines) do
         if line.type == Enum.TooltipDataLineType.ItemBinding
-            and line.bonding == Enum.TooltipDataItemBinding.Soulbound then
+            and (line.bonding == Enum.TooltipDataItemBinding.Soulbound
+                or line.bonding == Enum.TooltipDataItemBinding.BindOnPickup) then
             return
         end
     end
