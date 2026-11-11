@@ -2,7 +2,6 @@ local _, addon = ...
 local cooking = {
     id = 185, name = "Cooking", shortName = "Cooking", skillLabel = "Cooking",
     scanCommand = "/jj cookscan", catalogName = "JJCookingCatalog", characterName = "JJCookingCharacter",
-    vendorFinished = true,
     materialChoices = { { "Buy finished inputs", "buy" }, { "Buy raw materials", "raw" } },
 }
 addon.Cooking = cooking

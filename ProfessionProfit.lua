@@ -81,13 +81,13 @@ function addon.AttachProfessionProfit(profession)
         entry.forgone = entry.forgone and forgone and entry.forgone + forgone or nil
     end
 
-    local function BuyIngredient(line, entry, expanded)
+    local function BuyIngredient(line, entry)
         local key = addon.AuctionPrices.ItemKey(line.link)
-        local vendor = (expanded or profession.vendorFinished) and key and character.goldVendor[key]
+        local vendor = key and character.goldVendor[key]
         local price = vendor and vendor.price or Price(line.link)
         local source = character.gold.prices == "median" and "AH median (14d)" or "AH latest lowest"
         line.source = vendor and "Vendor observed " .. date("%Y-%m-%d %H:%M", vendor.at)
-            or source .. (expanded and " estimate (no vendor quote)" or " estimate")
+            or source .. " estimate (no vendor quote)"
         line.unitPrice = price
         line.cost = price and price * line.quantity
         AddCost(entry, line.cost, 0)
@@ -124,7 +124,7 @@ function addon.AttachProfessionProfit(profession)
                     line.forgone = price and price * quantity
                     AddCost(entry, 0, line.forgone)
                 else
-                    BuyIngredient(line, entry, expanded)
+                    BuyIngredient(line, entry)
                 end
             elseif expanded and profession.saltShaker and ingredient.itemID == 15409 then
                 -- Forever 70888: Salt Shaker (19566), not a native LW recipe.
@@ -135,7 +135,7 @@ function addon.AttachProfessionProfit(profession)
                     .. ". Device and cooldown value excluded")
                 local salt = { link = ItemLink(8150), itemID = 8150, quantity = quantity, depth = depth + 1 }
                 table.insert(entry.lines, salt)
-                BuyIngredient(salt, entry, expanded)
+                BuyIngredient(salt, entry)
             elseif expanded and key and producers[key] then
                 local choices = producers[key]
                 if #choices ~= 1 then
@@ -156,7 +156,7 @@ function addon.AttachProfessionProfit(profession)
                     end
                 end
             else
-                BuyIngredient(line, entry, expanded)
+                BuyIngredient(line, entry)
             end
         end
         path[recipeID] = nil
