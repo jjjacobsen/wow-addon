@@ -33,7 +33,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/spell=1270632/critter-cookie
 -- Solid Dynamite, Quick Facts Requires Engineering (175), not its output tooltip:
 -- https://www.wowhead.com/forever/spell=12586/solid-dynamite
--- Partial coverage: 1302 recipe spells. Missing or conflicting gates stay unknown.
+-- Partial coverage: 1303 recipe spells. Missing or conflicting gates stay unknown.
 -- Counts identify verified requirements, not currently obtainable recipes. Saved
 -- catalogs can include outputs whose availability is unverified. Neither a missing
 -- rank nor a client skill-line entry proves that a recipe is available in Forever.
@@ -49,7 +49,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/skill=202/engineering
 -- https://www.wowhead.com/forever/skill=197/tailoring
 addon.ProfessionSkillRequirements = {
-    [165] = { -- Leatherworking, 542 verified recipes
+    [165] = { -- Leatherworking, 543 verified recipes
         -- https://guide.wow4ever.se/en/professions/leatherworking
         [2149] = 1, -- Forever Guide starter
         [2152] = 1, -- Forever Guide starter
@@ -159,6 +159,7 @@ addon.ProfessionSkillRequirements = {
         [10546] = 200, -- item 8405
         [10548] = 205, -- user-confirmed Nightscape Pants
         [10550] = 205, -- item 8388
+        [10552] = 205, -- user-confirmed Turtle Scale Helm
         [10554] = 210, -- item 8399
         [10558] = 210, -- user-confirmed Nightscape Boots
         [10560] = 215, -- item 8389
