@@ -140,10 +140,11 @@ local function CreateSettings()
         elseif command == "free" then
             addon.FreeSlotCommand()
         elseif command == "empty" then
-            local lw = addon.Leatherworking
-            lw.emptySkillOnly = not lw.emptySkillOnly
-            lw.UpdateWindow()
-            print("wow-addon: Empty LW skill filter " .. (lw.emptySkillOnly and "on" or "off"))
+            addon.emptySkillOnly = not addon.emptySkillOnly
+            for _, profession in ipairs({ addon.Leatherworking, addon.Cooking, addon.FirstAid, addon.Engineering, addon.Tailoring }) do
+                profession.UpdateWindow()
+            end
+            print("wow-addon: Empty skill filter " .. (addon.emptySkillOnly and "on" or "off"))
         elseif command == "lw" then
             addon.LeatherworkingCommand()
         elseif command == "lwscan" then

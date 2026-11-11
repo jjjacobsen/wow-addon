@@ -97,7 +97,7 @@ function addon.AttachProfessionProfitWindow(profession)
         local query = view.search:GetText():lower()
         for _, entry in ipairs(profession.GoldRows()) do
             local name = entry.name:match("|h%[(.-)%]|h") or entry.name
-            if (not profession.emptySkillOnly or entry.requiredSkill == nil)
+            if (not addon.emptySkillOnly or entry.requiredSkill == nil)
                 and (query == "" or name:lower():find(query, 1, true)
                     or (entry.recipe.name or ""):lower():find(query, 1, true)) then
                 table.insert(rows, entry)
