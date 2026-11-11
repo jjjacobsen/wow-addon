@@ -16,6 +16,10 @@ function addon.AttachProfessionCatalog(profession)
     local function Catalog() return _G[profession.catalogName] end
     local function Character() return _G[profession.characterName] end
 
+    function profession.RequiredSkill(recipeID)
+        return addon.ProfessionSkillRequirements[profession.id][recipeID]
+    end
+
     function profession.OwnProfessionOpen()
         if not ProfessionsFrame or not ProfessionsFrame:IsShown()
             or not ProfessionsFrame.CraftingPage:IsShown() then return false end
@@ -45,7 +49,6 @@ function addon.AttachProfessionCatalog(profession)
         run.ticker:Cancel()
         run.timeout:Cancel()
         if complete then
-            run.catalog.trainerRequirements = Catalog() and Catalog().trainerRequirements
             _G[profession.catalogName] = run.catalog
             Character().learned = run.learned
         end
@@ -113,33 +116,6 @@ function addon.AttachProfessionCatalog(profession)
         return true
     end
 
-    local function CaptureRequirement(pattern, run)
-        if pattern.failed then return true end
-        if not C_Item.IsItemDataCachedByID(pattern.itemID) then
-            if not pattern.requestedAt then
-                pattern.requestedAt = GetTime()
-                run.patternPending[pattern.itemID] = pattern
-                C_Item.RequestLoadItemDataByID(pattern.itemID)
-            end
-            return GetTime() - pattern.requestedAt >= 10
-        end
-        pattern.attempts = pattern.attempts + 1
-        local tooltip = C_TooltipInfo.GetItemByID(pattern.itemID)
-        if tooltip then
-            for _, line in ipairs(tooltip.lines) do
-                if line.type == Enum.TooltipDataLineType.UsageRequirement
-                    and line.requirementType == Enum.TooltipDataUsageRequirementType.Skill and line.leftText then
-                    local skill = tonumber(line.leftText:match(run.requirementPattern))
-                    if skill then
-                        run.catalog.recipes[pattern.recipeID].requiredSkill = skill
-                        return true
-                    end
-                end
-            end
-        end
-        return pattern.attempts >= 3
-    end
-
     local function Tick()
         local run = active
         if not ScanReady() or C_TradeSkillUI.GetBaseProfessionInfo().sourceCounter ~= run.sourceCounter then
@@ -161,13 +137,7 @@ function addon.AttachProfessionCatalog(profession)
                 C_Item.RequestLoadItemDataByID(itemID)
             end
         end
-        for _ = 1, math.min(10, #run.patterns - run.patternIndex + 1) do
-            local pattern = run.patterns[run.patternIndex]
-            run.patternIndex = run.patternIndex + 1
-            if not CaptureRequirement(pattern, run) then table.insert(run.patterns, pattern) end
-        end
-        if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending)
-            and run.patternIndex > #run.patterns then
+        if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending) then
             local missing = 0
             for _, item in pairs(run.catalog.items) do
                 if not item.loaded or (item.slot and not item.stats) then missing = missing + 1 end
@@ -175,9 +145,9 @@ function addon.AttachProfessionCatalog(profession)
             local unresolved, requirements = 0, 0
             for recipeID, recipe in pairs(run.catalog.recipes) do
                 if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
-                if profession.RequiredSkill(recipeID, recipe) then requirements = requirements + 1 end
+                if profession.RequiredSkill(recipeID) then requirements = requirements + 1 end
             end
-            Finish(("complete: %d recipes, %d items unavailable, %d outputs unresolved, %d %s requirements known")
+            Finish(("complete: %d recipes, %d items unavailable, %d outputs unresolved, %d static %s requirements known")
                 :format(#run.recipeIDs, missing, unresolved, requirements, profession.shortName), true)
         end
     end
@@ -197,9 +167,7 @@ function addon.AttachProfessionCatalog(profession)
             return
         end
         local info = C_TradeSkillUI.GetBaseProfessionInfo()
-        local requirementPattern = ITEM_MIN_SKILL:format(info.professionName, 987654321)
-            :gsub("(%W)", "%%%1"):gsub("987654321", "(%%d+)")
-        local recipes, learned, itemIDs, items, patterns = {}, {}, {}, {}, {}
+        local recipes, learned, itemIDs, items = {}, {}, {}, {}
         table.sort(recipeIDs)
         for _, recipeID in ipairs(recipeIDs) do
             local output = C_TradeSkillUI.GetRecipeOutputItemData(recipeID)
@@ -209,10 +177,6 @@ function addon.AttachProfessionCatalog(profession)
             end
             if itemID and itemID <= 0 then itemID = nil end
             recipes[recipeID] = { itemID = itemID, link = output and output.hyperlink }
-            local patternID = profession.patterns[recipeID]
-            if patternID then
-                table.insert(patterns, { recipeID = recipeID, itemID = patternID, attempts = 0 })
-            end
             if itemID and not items[itemID] then
                 items[itemID] = { itemID = itemID }
                 table.insert(itemIDs, itemID)
@@ -222,8 +186,6 @@ function addon.AttachProfessionCatalog(profession)
             catalog = { recipes = recipes, items = items }, learned = learned,
             itemIDs = itemIDs, index = 1, pending = {}, recipeIDs = recipeIDs, recipeIndex = 1,
             sourceCounter = info.sourceCounter,
-            patterns = patterns, patternIndex = 1, patternPending = {},
-            requirementPattern = "^" .. requirementPattern .. "$",
         }
         events:RegisterEvent("ITEM_DATA_LOAD_RESULT")
         active.ticker = C_Timer.NewTicker(0.2, Tick)
@@ -302,11 +264,6 @@ function addon.AttachProfessionCatalog(profession)
                 if active.pending[itemID] then
                     if success then ReadItem(active.catalog.items[itemID]) end
                     active.pending[itemID] = nil
-                end
-                local pattern = active.patternPending[itemID]
-                if pattern then
-                    pattern.failed = not success
-                    active.patternPending[itemID] = nil
                 end
             elseif event == "NEW_RECIPE_LEARNED" then
                 if not (Catalog() and Catalog().recipes[itemID]) then

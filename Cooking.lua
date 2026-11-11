@@ -8,7 +8,6 @@ addon.Cooking = cooking
 local enabled, window
 
 addon.AttachProfessionCatalog(cooking)
-addon.AttachProfessionTrainer(cooking)
 addon.AttachProfessionProfit(cooking)
 addon.AttachProfessionProfitWindow(cooking)
 
@@ -50,6 +49,5 @@ addon.RegisterFeature("cooking", "Cooking profit", function(value)
         addon.CookingCommand, cooking.OpenAndScan)
     JJCookingCharacter = JJCookingCharacter or { learned = {} }
     cooking.InitializeGold()
-    cooking.InitializeTrainer()
     cooking.InitializeCatalog()
 end)

@@ -9,7 +9,6 @@ addon.Engineering = engineering
 local enabled, window
 
 addon.AttachProfessionCatalog(engineering)
-addon.AttachProfessionTrainer(engineering)
 addon.AttachProfessionProfit(engineering)
 addon.AttachProfessionProfitWindow(engineering)
 
@@ -51,6 +50,5 @@ addon.RegisterFeature("engineering", "Engineering profit", function(value)
         addon.EngineeringCommand, engineering.OpenAndScan)
     JJEngineeringCharacter = JJEngineeringCharacter or { learned = {} }
     engineering.InitializeGold()
-    engineering.InitializeTrainer()
     engineering.InitializeCatalog()
 end)

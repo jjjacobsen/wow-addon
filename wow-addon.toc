@@ -7,24 +7,18 @@
 
 Core.lua
 MinimapButtons.lua
+ProfessionSkillRequirements.lua
 ProfessionCatalog.lua
-ProfessionTrainer.lua
 ProfessionProfit.lua
 ProfessionProfitWindow.lua
 Leatherworking.lua
-LeatherworkingPatterns.lua
-LeatherworkingTrainer.lua
 LeatherworkingGold.lua
 LeatherworkingGoldWindow.lua
 LeatherworkingWindow.lua
 Cooking.lua
-CookingPatterns.lua
 FirstAid.lua
-FirstAidPatterns.lua
 Engineering.lua
-EngineeringPatterns.lua
 Tailoring.lua
-TailoringPatterns.lua
 HideBuffCollapseArrow.lua
 PlayerRareElitePortrait.lua
 TankNameplates.lua

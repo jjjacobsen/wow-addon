@@ -9,7 +9,6 @@ addon.Tailoring = tailoring
 local enabled, window
 
 addon.AttachProfessionCatalog(tailoring)
-addon.AttachProfessionTrainer(tailoring)
 addon.AttachProfessionProfit(tailoring)
 addon.AttachProfessionProfitWindow(tailoring)
 
@@ -51,6 +50,5 @@ addon.RegisterFeature("tailoring", "Tailoring profit", function(value)
         addon.TailoringCommand, tailoring.OpenAndScan)
     JJTailoringCharacter = JJTailoringCharacter or { learned = {} }
     tailoring.InitializeGold()
-    tailoring.InitializeTrainer()
     tailoring.InitializeCatalog()
 end)

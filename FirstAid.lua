@@ -8,7 +8,6 @@ addon.FirstAid = firstAid
 local enabled, window
 
 addon.AttachProfessionCatalog(firstAid)
-addon.AttachProfessionTrainer(firstAid)
 addon.AttachProfessionProfit(firstAid)
 addon.AttachProfessionProfitWindow(firstAid)
 
@@ -50,6 +49,5 @@ addon.RegisterFeature("firstAid", "First Aid profit", function(value)
         addon.FirstAidCommand, firstAid.OpenAndScan)
     JJFirstAidCharacter = JJFirstAidCharacter or { learned = {} }
     firstAid.InitializeGold()
-    firstAid.InitializeTrainer()
     firstAid.InitializeCatalog()
 end)

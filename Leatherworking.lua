@@ -93,6 +93,5 @@ addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
         JJLWCharacter.stat = "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"
     end
     lw.InitializeGold()
-    lw.InitializeTrainer()
     lw.InitializeCatalog()
 end)
