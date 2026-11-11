@@ -33,14 +33,14 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/spell=1270632/critter-cookie
 -- Solid Dynamite, Quick Facts Requires Engineering (175), not its output tooltip:
 -- https://www.wowhead.com/forever/spell=12586/solid-dynamite
--- Partial coverage: 1295 recipe spells. Missing or conflicting gates stay unknown.
+-- Partial coverage: 1301 recipe spells. Missing or conflicting gates stay unknown.
 -- Counts identify verified requirements, not currently obtainable recipes. Saved
 -- catalogs can include outputs whose availability is unverified. Neither a missing
 -- rank nor a client skill-line entry proves that a recipe is available in Forever.
 -- Conflicting item gates: 23706 (19329/227895),
 -- 23664 (19216/227896), 23665 (19217/227897). Do not select the lowest gate.
--- Ten native/Wowhead disagreements are also omitted:
--- Cooking 1291341; First Aid 7929, 10840; Engineering 12615, 19825, 23129,
+-- Eight native/Wowhead disagreements remain omitted:
+-- Cooking 1291341; Engineering 12615, 19825, 23129,
 -- 435964, 1266925, 1266938, 1266940. No guessed starter or zero ranks.
 -- https://www.wowhead.com/forever/skill=165/leatherworking
 -- https://www.wowhead.com/forever/skill=185/cooking
@@ -593,7 +593,7 @@ addon.ProfessionSkillRequirements = {
         [1306531] = 300, -- item 279306
         [1306532] = 300, -- item 279307
     },
-    [185] = { -- Cooking, 127 verified recipes
+    [185] = { -- Cooking, 128 verified recipes
         -- https://guide.wow4ever.se/en/professions/cooking
         [2538] = 1, -- Forever Guide starter
         [2539] = 10, -- Forever Guide trainer
@@ -642,6 +642,7 @@ addon.ProfessionSkillRequirements = {
         [8604] = 1, -- Forever Guide starter
         [8607] = 40, -- item 6892
         [9513] = 60, -- item 7678
+        [13028] = 215, -- user-confirmed Goldthorn Tea
         [15853] = 125, -- item 12227
         [15855] = 175, -- item 12228
         [15856] = 175, -- item 12229
@@ -723,15 +724,20 @@ addon.ProfessionSkillRequirements = {
         [1295834] = 185, -- item 274977
         [1319313] = 225, -- item 286153
     },
-    [129] = { -- First Aid, 26 verified recipes
+    [129] = { -- First Aid, 31 verified recipes
         -- https://guide.wow4ever.se/en/professions/first-aid
         [3275] = 1, -- Forever Guide starter
         [3276] = 40, -- Forever Guide trainer
         [3277] = 80, -- Forever Guide trainer
         [3278] = 115, -- Forever Guide trainer
         [7928] = 150, -- Forever Guide trainer
+        [7929] = 180, -- user-confirmed Heavy Silk Bandage
         [7934] = 80, -- Forever Guide trainer
         [7935] = 130, -- item 6454
+        [10840] = 210, -- user-confirmed Mageweave Bandage
+        [10841] = 240, -- user-confirmed Heavy Mageweave Bandage
+        [18629] = 260, -- user-confirmed Runecloth Bandage
+        [18630] = 290, -- user-confirmed Heavy Runecloth Bandage
         [23787] = 300, -- item 19442
         [470349] = 300, -- item 232434
         [1230117] = 20, -- Forever Guide trainer
