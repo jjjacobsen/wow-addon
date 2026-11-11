@@ -33,11 +33,11 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/spell=1270632/critter-cookie
 -- Solid Dynamite, Quick Facts Requires Engineering (175), not its output tooltip:
 -- https://www.wowhead.com/forever/spell=12586/solid-dynamite
--- Partial coverage: 1290 recipe spells. Missing or conflicting gates stay unknown.
+-- Partial coverage: 1295 recipe spells. Missing or conflicting gates stay unknown.
 -- Counts identify verified requirements, not currently obtainable recipes. Saved
 -- catalogs can include outputs whose availability is unverified. Neither a missing
 -- rank nor a client skill-line entry proves that a recipe is available in Forever.
--- Conflicting item gates: 7153 (items 4295/5974), 23706 (19329/227895),
+-- Conflicting item gates: 23706 (19329/227895),
 -- 23664 (19216/227896), 23665 (19217/227897). Do not select the lowest gate.
 -- Ten native/Wowhead disagreements are also omitted:
 -- Cooking 1291341; First Aid 7929, 10840; Engineering 12615, 19825, 23129,
@@ -49,7 +49,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/skill=202/engineering
 -- https://www.wowhead.com/forever/skill=197/tailoring
 addon.ProfessionSkillRequirements = {
-    [165] = { -- Leatherworking, 536 verified recipes
+    [165] = { -- Leatherworking, 541 verified recipes
         -- https://guide.wow4ever.se/en/professions/leatherworking
         [2149] = 1, -- Forever Guide starter
         [2152] = 1, -- Forever Guide starter
@@ -108,6 +108,7 @@ addon.ProfessionSkillRequirements = {
         [7147] = 135, -- archived native trainer
         [7149] = 145, -- item 5973
         [7151] = 150, -- archived native trainer
+        [7153] = 160, -- user-confirmed Guardian Cloak
         [7156] = 165, -- archived native trainer
         [7953] = 65, -- item 6474
         [7954] = 80, -- item 6475
@@ -156,8 +157,10 @@ addon.ProfessionSkillRequirements = {
         [10542] = 200, -- item 8398
         [10544] = 200, -- item 8404
         [10546] = 200, -- item 8405
+        [10548] = 205, -- user-confirmed Nightscape Pants
         [10550] = 205, -- item 8388
         [10554] = 210, -- item 8399
+        [10558] = 210, -- user-confirmed Nightscape Boots
         [10560] = 215, -- item 8389
         [10562] = 215, -- item 8390
         [10564] = 215, -- item 8400
@@ -183,6 +186,7 @@ addon.ProfessionSkillRequirements = {
         [19053] = 240, -- item 15729
         [19054] = 290, -- item 15730
         [19055] = 245, -- item 15731
+        [19058] = 225, -- user-confirmed Rugged Armor Kit
         [19059] = 245, -- item 15732
         [19060] = 245, -- item 15733
         [19061] = 245, -- item 15734
@@ -233,6 +237,7 @@ addon.ProfessionSkillRequirements = {
         [20854] = 300, -- item 17023
         [20855] = 300, -- item 17025
         [21943] = 165, -- item 17722
+        [22331] = 225, -- user-confirmed Rugged Leather
         [22711] = 175, -- item 18239
         [22727] = 300, -- item 18252
         [22921] = 290, -- item 18514
