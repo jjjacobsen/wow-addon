@@ -86,7 +86,7 @@ Scans use the full auction list, with a local account-wide 15-minute cooldown. T
 Chat reports elapsed time every 10 seconds, first while waiting for the server list, then with processed auction counts and checked rows waiting for item data. Scans time out after 300 seconds. A missing server response reports possible throttling, while incomplete data reports the remaining rows. A timeout or cancelled scan keeps the previous prices
 
 Soulbound items omit AH rows when their binding is available from the item or tooltip
-Item tooltips show the latest scan's lowest buyout per unit and the median of each day's latest observed minimum over 14 UTC days, including today. Days without an observation are excluded. Repeated scans replace that day's price, not add another sample
+Item tooltips show the latest scan's lowest buyout per unit and the median of daily medians over 14 UTC days, including today. Each successful scan adds its lowest buyout per unit to that UTC day's observations. Each sampled day has equal weight, and days without observations are excluded. Existing daily prices count as one observation each
 Items absent from the latest scan have no current lowest price but keep their recent history. Missing prices show Unavailable, not zero. Displayed prices round up to whole copper
 Suffixes and real bonus/modifier data remain separate. Item source context and the sole native preview bonus 3524 are ignored so previews and auction links can match. Existing scans remain usable. A complete item link is required, with no fallback to item ID alone
 Owned stacks also show AH totals for that stack. Native recipe outputs show totals for a fixed per-craft quantity, not the number owned. Variable output ranges have no exact total

@@ -86,22 +86,48 @@ local function ItemKey(link)
     return table.concat(fields, ":")
 end
 
+local function IndexHistory(source)
+    local history = {}
+    for key, samples in pairs(source) do
+        local normalized = ItemKey("item:" .. key)
+        local days = history[normalized] or {}
+        history[normalized] = days
+        for day, observations in pairs(samples) do
+            local prices = days[day] or {}
+            days[day] = prices
+            -- Keep an older daily price as one observation.
+            if type(observations) == "number" then
+                table.insert(prices, observations)
+            else
+                for _, price in ipairs(observations) do
+                    table.insert(prices, price)
+                end
+            end
+        end
+    end
+    return history
+end
+
+local function Median(prices)
+    local sorted = {}
+    for _, price in ipairs(prices) do
+        table.insert(sorted, price)
+    end
+    table.sort(sorted)
+    local count = #sorted
+    if count > 0 then
+        return (sorted[math.floor((count + 1) / 2)] + sorted[math.ceil((count + 1) / 2)]) / 2
+    end
+end
+
 -- Index older saved keys without changing the saved scan or history.
 local indexedMarket, indexedLowest, indexedHistory
 local function IndexMarket(market)
     if market == indexedMarket then return end
-    indexedMarket, indexedLowest, indexedHistory = market, {}, {}
+    indexedMarket, indexedLowest, indexedHistory = market, {}, IndexHistory(market.history)
     for key, price in pairs(market.lowest) do
         local normalized = ItemKey("item:" .. key)
         indexedLowest[normalized] = math.min(indexedLowest[normalized] or price, price)
-    end
-    for key, samples in pairs(market.history) do
-        local normalized = ItemKey("item:" .. key)
-        local history = indexedHistory[normalized] or {}
-        indexedHistory[normalized] = history
-        for day, price in pairs(samples) do
-            history[day] = math.min(history[day] or price, price)
-        end
     end
 end
 
@@ -115,18 +141,13 @@ local function Lookup(link)
     local samples = market and indexedHistory[key]
     local prices, day = {}, Day()
     if samples then
-        for sampleDay, price in pairs(samples) do
+        for sampleDay, observations in pairs(samples) do
             if sampleDay >= day - 13 and sampleDay <= day then
-                table.insert(prices, price)
+                table.insert(prices, Median(observations))
             end
         end
     end
-    table.sort(prices)
-    local count, median = #prices
-    if count > 0 then
-        median = (prices[math.floor((count + 1) / 2)] + prices[math.ceil((count + 1) / 2)]) / 2
-    end
-    return lowest, median, market and market.scannedAt, marketKey
+    return lowest, Median(prices), market and market.scannedAt, marketKey
 end
 local function Supply(link)
     local market = JJAuctionPrices and JJAuctionPrices.markets[MarketKey()]
@@ -149,13 +170,13 @@ end
 
 local function CommitScan()
     local market = JJAuctionPrices.markets[scan.marketKey]
-    if market then IndexMarket(market) end
-    local history = market and indexedHistory or {}
+    local history = market and IndexHistory(market.history) or {}
     local day = Day()
     Prune(history, day - 13)
     for key, price in pairs(scan.lowest) do
         history[key] = history[key] or {}
-        history[key][day] = price
+        history[key][day] = history[key][day] or {}
+        table.insert(history[key][day], price)
     end
     JJAuctionPrices.markets[scan.marketKey] = {
         lowest = scan.lowest,
