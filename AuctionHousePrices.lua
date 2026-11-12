@@ -86,26 +86,52 @@ local function ItemKey(link)
     return table.concat(fields, ":")
 end
 
-local function IndexHistory(source)
-    local history = {}
-    for key, samples in pairs(source) do
+local function NormalizeMarket(market)
+    -- Collect aliases before moving keys so pairs never visits newly added keys.
+    local aliases = {}
+    for key in pairs(market.lowest) do
+        if ItemKey("item:" .. key) ~= key then
+            table.insert(aliases, key)
+        end
+    end
+    for _, key in ipairs(aliases) do
         local normalized = ItemKey("item:" .. key)
-        local days = history[normalized] or {}
-        history[normalized] = days
+        local price = market.lowest[key]
+        market.lowest[normalized] = math.min(market.lowest[normalized] or price, price)
+        market.lowest[key] = nil
+    end
+
+    aliases = {}
+    for key, samples in pairs(market.history) do
+        if ItemKey("item:" .. key) ~= key then
+            table.insert(aliases, key)
+        end
         for day, observations in pairs(samples) do
-            local prices = days[day] or {}
-            days[day] = prices
             -- Keep an older daily price as one observation.
             if type(observations) == "number" then
-                table.insert(prices, observations)
-            else
-                for _, price in ipairs(observations) do
-                    table.insert(prices, price)
-                end
+                samples[day] = { observations }
             end
         end
     end
-    return history
+    for _, key in ipairs(aliases) do
+        local normalized = ItemKey("item:" .. key)
+        local samples = market.history[key]
+        local days = market.history[normalized]
+        if not days then
+            market.history[normalized] = samples
+        else
+            for day, observations in pairs(samples) do
+                if not days[day] then
+                    days[day] = observations
+                else
+                    for _, price in ipairs(observations) do
+                        table.insert(days[day], price)
+                    end
+                end
+            end
+        end
+        market.history[key] = nil
+    end
 end
 
 local function Median(prices)
@@ -120,25 +146,13 @@ local function Median(prices)
     end
 end
 
--- Index older saved keys without changing the saved scan or history.
-local indexedMarket, indexedLowest, indexedHistory
-local function IndexMarket(market)
-    if market == indexedMarket then return end
-    indexedMarket, indexedLowest, indexedHistory = market, {}, IndexHistory(market.history)
-    for key, price in pairs(market.lowest) do
-        local normalized = ItemKey("item:" .. key)
-        indexedLowest[normalized] = math.min(indexedLowest[normalized] or price, price)
-    end
-end
-
 -- Read-only access to this character's market, including when scanning/tooltips are disabled.
 local function Lookup(link)
     local marketKey = MarketKey()
     local market = JJAuctionPrices and JJAuctionPrices.markets[marketKey]
-    if market then IndexMarket(market) end
     local key = ItemKey(link)
-    local lowest = market and indexedLowest[key]
-    local samples = market and indexedHistory[key]
+    local lowest = market and market.lowest[key]
+    local samples = market and market.history[key]
     local prices, day = {}, Day()
     if samples then
         for sampleDay, observations in pairs(samples) do
@@ -170,7 +184,7 @@ end
 
 local function CommitScan()
     local market = JJAuctionPrices.markets[scan.marketKey]
-    local history = market and IndexHistory(market.history) or {}
+    local history = market and market.history or {}
     local day = Day()
     Prune(history, day - 13)
     for key, price in pairs(scan.lowest) do
@@ -402,6 +416,11 @@ end
 
 addon.RegisterFeature("auctionHousePrices", "Auction house prices", function(value)
     enabled = value
+    if JJAuctionPrices then
+        for _, market in pairs(JJAuctionPrices.markets) do
+            NormalizeMarket(market)
+        end
+    end
     if not enabled then
         return
     end
