@@ -17,7 +17,7 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 Use `/jj` to open the feature settings. Checkbox changes are saved between sessions. Except for Tank mode and Enable Damage Meter, they take effect after a UI reload
 Reload is enabled only when these saved selections differ from the settings applied at startup. Click Reload to apply them
-Reload-based features start enabled except Maximum camera zoom. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
+Reload-based features start enabled except Maximum camera zoom and Five-second rule. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
 
 Mute spell failure sounds mutes the five spell fizzle files for all failures, separate from Filter common errors. It does not mute normal spell sounds or change the error speech setting
@@ -27,6 +27,12 @@ Turn it off and reload to restore those sounds
 
 Maximum camera zoom starts off. Enable it in `/jj`, then click Reload to set the native Max Camera Distance slider maximum, `2.0` in Forever build 1.60.1.70888. Scroll out manually. It does not force the camera position or bypass native limits
 Turn it off and reload to restore the value saved before enabling it
+
+## Five-second rule
+
+Five-second rule starts off. Enable it in `/jj`, then click Reload
+A 6-pixel round gold dot beside your portrait shows for five seconds after a successful spell with a readable positive mana cost captured when the cast was sent. Another paid mana cast restarts it. Free casts, energy and rage abilities, failed casts, and form changes do not stop an active timer. A paid form change restarts it
+This uses the client's cost snapshot, not measured mana loss or a guarantee of zero mana regeneration. Unavailable or secret costs are skipped. Enemy mana drains are not tracked
 
 ## Trade chat filter
 
