@@ -33,7 +33,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/spell=1270632/critter-cookie
 -- Solid Dynamite, Quick Facts Requires Engineering (175), not its output tooltip:
 -- https://www.wowhead.com/forever/spell=12586/solid-dynamite
--- Partial coverage: 1303 recipe spells. Missing or conflicting gates stay unknown.
+-- Partial coverage: 1305 recipe spells. Missing or conflicting gates stay unknown.
 -- Counts identify verified requirements, not currently obtainable recipes. Saved
 -- catalogs can include outputs whose availability is unverified. Neither a missing
 -- rank nor a client skill-line entry proves that a recipe is available in Forever.
@@ -49,7 +49,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/skill=202/engineering
 -- https://www.wowhead.com/forever/skill=197/tailoring
 addon.ProfessionSkillRequirements = {
-    [165] = { -- Leatherworking, 543 verified recipes
+    [165] = { -- Leatherworking, 545 verified recipes
         -- https://guide.wow4ever.se/en/professions/leatherworking
         [2149] = 1, -- Forever Guide starter
         [2152] = 1, -- Forever Guide starter
@@ -161,6 +161,7 @@ addon.ProfessionSkillRequirements = {
         [10550] = 205, -- item 8388
         [10552] = 205, -- user-confirmed Turtle Scale Helm
         [10554] = 210, -- item 8399
+        [10556] = 210, -- user-confirmed Turtle Scale Leggings
         [10558] = 210, -- user-confirmed Nightscape Boots
         [10560] = 215, -- item 8389
         [10562] = 215, -- item 8390
@@ -173,6 +174,7 @@ addon.ProfessionSkillRequirements = {
         [10619] = 225, -- Wowhead spell page, user-confirmed
         [10621] = 225, -- Wowhead spell page, user-confirmed
         [10647] = 250, -- user-confirmed Feathered Breastplate
+        [10650] = 255, -- user-confirmed Dragonscale Breastplate
         [14930] = 200, -- archived native trainer
         [14932] = 200, -- archived native trainer
         [16650] = 245, -- item 12691
