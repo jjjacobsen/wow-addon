@@ -21,6 +21,7 @@ FirstAid.lua
 Engineering.lua
 Tailoring.lua
 HideBuffCollapseArrow.lua
+MaximumCameraZoom.lua
 PlayerRareElitePortrait.lua
 TankNameplates.lua
 DamageMeter.lua

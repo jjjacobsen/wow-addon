@@ -17,11 +17,16 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 Use `/jj` to open the feature settings. Checkbox changes are saved between sessions. Except for Tank mode and Enable Damage Meter, they take effect after a UI reload
 Reload is enabled only when these saved selections differ from the settings applied at startup. Click Reload to apply them
-All reload-based features start enabled. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
+Reload-based features start enabled except Maximum camera zoom. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
 
 Mute spell failure sounds mutes the five spell fizzle files for all failures, separate from Filter common errors. It does not mute normal spell sounds or change the error speech setting
 Turn it off and reload to restore those sounds
+
+## Maximum camera zoom
+
+Maximum camera zoom starts off. Enable it in `/jj`, then click Reload to set the native Max Camera Distance slider maximum, `2.0` in Forever build 1.60.1.70888. Scroll out manually. It does not force the camera position or bypass native limits
+Turn it off and reload to restore the value saved before enabling it
 
 ## Trade chat filter
 
@@ -172,6 +177,6 @@ Calculations run only on opening the window, changing a filter, or confirming AH
 Add each feature as a separate Lua file and list its path after `Core.lua` in `wow-addon.toc`
 Get the addon namespace with `local _, addon = ...`, then call `addon.RegisterFeature("uniqueKey", "Checkbox label", function(enabled) ... end)`
 The callback runs at startup after saved settings load, not when its checkbox changes. Reload the UI to apply changes
-New features start enabled, and the callback must support both states
+New features start enabled unless the fourth argument is `false`, and the callback must support both states
 Restart WoW after adding files or changing the TOC
 Use `/reload` after edits to Lua files already listed in the TOC

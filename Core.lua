@@ -44,8 +44,8 @@ function addon.AddBagHeaderButton(text, width, onClick)
     InstallBagHeaderButtons()
 end
 
-function addon.RegisterFeature(key, label, apply)
-    table.insert(features, { key = key, label = label, apply = apply })
+function addon.RegisterFeature(key, label, apply, defaultEnabled)
+    table.insert(features, { key = key, label = label, apply = apply, defaultEnabled = defaultEnabled ~= false })
 end
 
 local function CreateSettings()
@@ -192,7 +192,7 @@ events:SetScript("OnEvent", function(self, event, loadedAddon)
     JJSettings = JJSettings or {}
     for _, feature in ipairs(features) do
         if JJSettings[feature.key] == nil then
-            JJSettings[feature.key] = true
+            JJSettings[feature.key] = feature.defaultEnabled
         end
     end
     for _, feature in ipairs(features) do
