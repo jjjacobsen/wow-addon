@@ -33,14 +33,14 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/spell=1270632/critter-cookie
 -- Solid Dynamite, Quick Facts Requires Engineering (175), not its output tooltip:
 -- https://www.wowhead.com/forever/spell=12586/solid-dynamite
--- Partial coverage: 1305 recipe spells. Missing or conflicting gates stay unknown.
+-- Partial coverage: 1306 recipe spells. Missing or conflicting gates stay unknown.
 -- Counts identify verified requirements, not currently obtainable recipes. Saved
 -- catalogs can include outputs whose availability is unverified. Neither a missing
 -- rank nor a client skill-line entry proves that a recipe is available in Forever.
 -- Conflicting item gates: 23706 (19329/227895),
 -- 23664 (19216/227896), 23665 (19217/227897). Do not select the lowest gate.
--- Eight native/Wowhead disagreements remain omitted:
--- Cooking 1291341; Engineering 12615, 19825, 23129,
+-- Seven native/Wowhead disagreements remain omitted:
+-- Engineering 12615, 19825, 23129,
 -- 435964, 1266925, 1266938, 1266940. No guessed starter or zero ranks.
 -- https://www.wowhead.com/forever/skill=165/leatherworking
 -- https://www.wowhead.com/forever/skill=185/cooking
@@ -597,7 +597,7 @@ addon.ProfessionSkillRequirements = {
         [1306531] = 300, -- item 279306
         [1306532] = 300, -- item 279307
     },
-    [185] = { -- Cooking, 128 verified recipes
+    [185] = { -- Cooking, 129 verified recipes
         -- https://guide.wow4ever.se/en/professions/cooking
         [2538] = 1, -- Forever Guide starter
         [2539] = 10, -- Forever Guide trainer
@@ -723,6 +723,7 @@ addon.ProfessionSkillRequirements = {
         [1270633] = 25, -- item 263511
         [1270635] = 35, -- item 263513
         [1283400] = 90, -- item 273087
+        [1291341] = 200, -- user-confirmed Expert Campfire Kit
         [1294014] = 275, -- item 274415
         [1295805] = 200, -- item 274972
         [1295834] = 185, -- item 274977
