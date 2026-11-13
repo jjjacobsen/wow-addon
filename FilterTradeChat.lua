@@ -71,4 +71,4 @@ addon.RegisterFeature("filterTradeChat", "Filter Trade chat", function(enabled)
     -- The native filter registry skips callbacks when chat payloads are secret
     ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL", FilterMessage)
     ChatFrame_AddMessageEventFilter("CHAT_MSG_YELL", FilterMessage)
-end)
+end, false)

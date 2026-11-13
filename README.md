@@ -17,7 +17,7 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 Use `/jj` to open the feature settings. Checkbox changes are saved between sessions. Except for Tank mode and Enable Damage Meter, they take effect after a UI reload
 Reload is enabled only when these saved selections differ from the settings applied at startup. Click Reload to apply them
-Reload-based features start enabled except Maximum camera zoom and Five-second rule. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
+Reload-based features start enabled except Maximum camera zoom, Five-second rule, and Filter Trade chat. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
 
 Mute spell failure sounds mutes the five spell fizzle files for all failures, separate from Filter common errors. It does not mute normal spell sounds or change the error speech setting
@@ -36,7 +36,7 @@ This uses the client's cost snapshot, not measured mana loss or a guarantee of z
 
 ## Trade chat filter
 
-Filter Trade chat starts enabled. Toggle it in `/jj`, then click Reload
+Filter Trade chat starts off. Enable it in `/jj`, then click Reload
 Filters native General, Trade, Trade (Services), and yells, regardless of channel number or language. Other channels, including Trade (Local), are unchanged
 Messages are hidden for any of these rules, after removing link data, colors, textures, and atlases while keeping visible link text
 
