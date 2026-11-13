@@ -73,6 +73,12 @@ Times are account-wide in `JJFlightDurations`, separate from settings, and group
 Use `/way 58.9 53.6` or `/way 58.9, 53.6` to set the native waypoint in your current zone, not the map you are viewing. Both coordinates must be from 0 to 100. Using `/way` without coordinates shows usage instructions
 Waypoints starts enabled. Toggle it in `/jj`, then click Reload. No custom arrow, tracking, or map window is added
 
+## Zone level ranges
+
+Zone level ranges starts enabled. Toggle it in `/jj`, then click Reload
+Shows the selected map's range at the right of the native breadcrumb bar, not your current zone. Hides when the bar has no room, or for cities, instances, continents and unknown maps
+Static ranges cover all 41 zones listed in Forever 1.60.1.70888's [Group Finder questing suggestions](https://wago.tools/db2/GroupFinderActivity/csv?build=1.60.1.70888), not quest requirements or scaling. Feralas is `38-54`. Native `53-63` suggestions and Zephras Isle's `1-14` are kept unchanged. Deadwind Pass, Moonglade and Shen'dralas have no verified suggestion and stay hidden
+
 ## Saved Bank
 
 Click Bank in the combined backpack header or use `/jj bank` to view this character's saved bank anywhere. Visit a bank first to save its contents

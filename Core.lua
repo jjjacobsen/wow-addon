@@ -51,7 +51,13 @@ end
 local function CreateSettings()
     local window = CreateFrame("Frame", "JJSettingsFrame", UIParent, "BasicFrameTemplate")
     window:Hide()
-    window:SetSize(300, 84 + (#features + 2) * 32)
+    local rows = math.ceil((#features + 2) / 2)
+    window:SetSize(600, 84 + rows * 32)
+    local function PositionCheckbox(checkbox, index)
+        local column = math.floor((index - 1) / rows)
+        local row = (index - 1) % rows
+        checkbox:SetPoint("TOPLEFT", 12 + column * 300, -32 - row * 32)
+    end
     window:SetPoint("CENTER")
     window:SetFrameStrata("DIALOG")
     window:EnableMouse(true)
@@ -87,7 +93,7 @@ local function CreateSettings()
 
     for index, feature in ipairs(features) do
         local checkbox = CreateFrame("CheckButton", nil, window, "UICheckButtonTemplate")
-        checkbox:SetPoint("TOPLEFT", 12, -32 - (index - 1) * 32)
+        PositionCheckbox(checkbox, index)
         checkbox.Text:SetText(feature.label)
         checkbox:SetChecked(JJSettings[feature.key])
         checkbox:SetScript("OnClick", function(self)
@@ -97,7 +103,7 @@ local function CreateSettings()
     end
 
     local tank = CreateFrame("CheckButton", nil, window, "UICheckButtonTemplate")
-    tank:SetPoint("TOPLEFT", 12, -32 - #features * 32)
+    PositionCheckbox(tank, #features + 1)
     tank.Text:SetText("Tank mode")
     tank:SetChecked(addon.IsTankNameplatesEnabled())
 
@@ -109,7 +115,7 @@ local function CreateSettings()
     tank:SetScript("OnClick", ToggleTankMode)
 
     local damageMeter = CreateFrame("CheckButton", nil, window, "UICheckButtonTemplate")
-    damageMeter:SetPoint("TOPLEFT", 12, -32 - (#features + 1) * 32)
+    PositionCheckbox(damageMeter, #features + 2)
     damageMeter.Text:SetText("Enable Damage Meter")
     local function UpdateDamageMeter()
         damageMeter:SetChecked(addon.IsDamageMeterEnabled())
