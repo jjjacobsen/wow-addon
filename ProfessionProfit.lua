@@ -91,6 +91,12 @@ function addon.AttachProfessionProfit(profession)
         AddCost(entry, line.cost, 0)
     end
 
+    local function FarmRaw(itemID)
+        local _, _, _, _, _, classID, subclassID = C_Item.GetItemInfoInstant(itemID)
+        return profession.farmRaw and profession.farmRaw[itemID]
+            and classID == Enum.ItemClass.Tradegoods and subclassID == 6
+    end
+
     local function Ingredients(recipeID, crafts, entry, producers, path, depth)
         local recipe = catalog.recipes[recipeID]
         if path[recipeID] then
@@ -110,12 +116,10 @@ function addon.AttachProfessionProfit(profession)
             local quantity = ingredient.quantity * crafts
             local line = { link = link, itemID = ingredient.itemID, quantity = quantity, depth = depth }
             table.insert(entry.lines, line)
-            local _, _, _, _, _, classID, subclassID = C_Item.GetItemInfoInstant(ingredient.itemID)
             local key = addon.AuctionPrices.ItemKey(link)
             local farm = character.gold.materials == "farm"
             local expanded = farm or character.gold.materials == "raw"
-            if expanded and link and profession.farmRaw and profession.farmRaw[ingredient.itemID]
-                and classID == Enum.ItemClass.Tradegoods and subclassID == 6 then
+            if expanded and link and FarmRaw(ingredient.itemID) then
                 if farm then
                     local price = SalePrice(link)
                     line.source, line.cost = "Farmed, zero cash", 0
@@ -234,6 +238,90 @@ function addon.AttachProfessionProfit(profession)
             return a.recipeID < b.recipeID
         end)
         return rows, hidden, unavailable, gear
+    end
+
+    function profession.DetailBasket(recipeID, crafts, bags)
+        Inputs()
+        local recipe = catalog.recipes[recipeID]
+        local basket = { recipe = recipe, recipeID = recipeID, link = OutputLink(recipe), crafts = crafts,
+            quantity = recipe.quantity and recipe.quantity * crafts, lines = {}, issues = {}, valid = true }
+        local producers, lines, remaining, surplus, path = Producers(), {}, {}, {}, {}
+        local mode = character.gold.materials
+        local expanded = mode == "raw" or mode == "farm"
+        for key, quantity in pairs(bags) do remaining[key] = quantity end
+        local function Problem(message)
+            basket.valid = false
+            table.insert(basket.issues, message)
+        end
+        local Expand
+        local function Need(itemID, quantity, depth)
+            local link = ItemLink(itemID)
+            local key = addon.AuctionPrices.ItemKey(link)
+            if not key then Problem("Item data unavailable: " .. itemID) return end
+            local line = lines[key]
+            if not line then
+                line = { key = key, link = link, itemID = itemID, required = 0, owned = 0,
+                    made = 0, need = 0, depth = depth, vendor = addon.VendorPrices[itemID] }
+                lines[key] = line
+                table.insert(basket.lines, line)
+            end
+            line.required = line.required + quantity
+            local owned = math.min(quantity, remaining[key] or 0)
+            remaining[key] = (remaining[key] or 0) - owned
+            line.owned, quantity = line.owned + owned, quantity - owned
+            local made = math.min(quantity, surplus[key] or 0)
+            surplus[key] = (surplus[key] or 0) - made
+            quantity = quantity - made
+            if quantity == 0 then return end
+            if expanded and FarmRaw(itemID) then
+                line.need = line.need + quantity
+                line.farm = mode == "farm"
+                line.source = line.farm and "Farm" or "AH"
+            elseif expanded and profession.saltShaker and itemID == 15409 then
+                line.expanded = true
+                line.made = line.made + quantity
+                line.source = "Salt Shaker: " .. line.made .. " use(s), 71-hour cooldown each"
+                table.insert(basket.issues, "Salt Shaker and LW 250 required. Shared 71-hour cooldown, availability not checked"
+                    .. ". Device and cooldown value excluded")
+                Need(8150, quantity, depth + 1)
+            elseif expanded and producers[key] then
+                local choices = producers[key]
+                if #choices ~= 1 then Problem("Multiple producers: " .. link) return end
+                local subID = choices[1]
+                local sub = catalog.recipes[subID]
+                if not sub.quantity or sub.quantity <= 0 then Problem("Intermediary yield unavailable: " .. link) return end
+                local batches = math.ceil(quantity / sub.quantity)
+                line.expanded = true
+                line.made = line.made + batches * sub.quantity
+                line.crafts = (line.crafts or 0) + batches
+                line.source = ("%s: %d craft(s), %d produced"):format(profession.shortName, line.crafts, line.made)
+                Expand(subID, batches, depth + 1)
+                surplus[key] = (surplus[key] or 0) + batches * sub.quantity - quantity
+            else
+                line.need = line.need + quantity
+                line.source = line.vendor and "Vendor base price" or "AH"
+            end
+        end
+        Expand = function(id, batches, depth)
+            local sub = catalog.recipes[id]
+            if path[id] then Problem("Cyclic intermediary: " .. (sub.name or id)) return end
+            if sub.unavailable or not sub.ingredients or not sub.quantity then
+                Problem(sub.unavailable or "Recipe ingredients unavailable")
+                return
+            end
+            RequireLearned(basket, id, depth > 0)
+            path[id] = true
+            for _, ingredient in ipairs(sub.ingredients) do Need(ingredient.itemID, ingredient.quantity * batches, depth) end
+            path[id] = nil
+        end
+        Expand(recipeID, crafts, 0)
+        for _, line in ipairs(basket.lines) do
+            line.unitPrice = line.farm and 0 or line.vendor or Price(line.link)
+        end
+        local reason
+        basket.savedPrice, reason = SalePrice(basket.link)
+        if reason then Issue(basket, reason) end
+        return basket
     end
 
     function profession.InitializeGold()

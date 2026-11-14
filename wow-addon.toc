@@ -12,6 +12,7 @@ ProfessionSkillRequirements.lua
 ProfessionCatalog.lua
 VendorPrices.lua
 ProfessionProfit.lua
+ProfessionDetailWindow.lua
 ProfessionProfitWindow.lua
 Leatherworking.lua
 LeatherworkingGold.lua

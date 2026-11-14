@@ -138,6 +138,11 @@ All five professions use the shared static base coin purchase prices in `VendorP
 
 Base prices use Forever build 1.60.1.70888 ItemSparse `BuyPrice / VendorStackCount`, checked against coin-only merchant offers. Merchant data from [Efficient Games](https://efficient.games), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), was selected and converted to unit prices. Source links and the full included price list are in `VendorPrices.lua`
 Hover a row for ingredient quantities, costs, and recipe requirements. Nested inputs appear beneath their intermediaries. Farm mode shows cash costs, not the sale value of farmed materials. All sale values and comparisons are gross estimates before AH fees because the exact Forever cut is not verified. Deposits and relists are excluded. Unknown prices never count as zero. Confirmed soulbound, account-bound, and other unsupported output bindings are hidden. Unknown output binding also hides the row. There are no sales predictions, automatic crafts, purchases, or listings
+
+Click a profit row in any of the five profession windows for recipe details. Back restores the table. Modified clicks still use the native item-link action. Crafts is the number of recipe executions, not output items. Details show the native output tooltip, yield, ingredient costs, output asking price, and cash margin before AH fees
+Details are display-only and use the same saved scan and per-character Materials and Prices choices as the table. Changes on either page apply to both, including Leatherworking's Farm leather and hides mode. There are no detail searches, refresh button, purchases, timers, or background updates
+Carried bags are read only when opening details or changing Crafts, Materials, or Prices, never from equipment or banks. Owned intermediaries are used first, then remaining production rounds up to full crafts across the selected quantity and repeated inputs. Farm inputs cost zero under the table's existing rules. Buy from AH, Buy from vendors, and Total new spending exclude owned materials. Output sale values and cash margins are estimates before AH fees
+
 Leatherworking gear starts enabled and controls all three tabs. Toggle it in `/jj`, then click Reload. Close the browser with its top-right close button or Escape
 
 ## Cooking profit

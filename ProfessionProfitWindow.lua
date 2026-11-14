@@ -80,12 +80,14 @@ function addon.AttachProfessionProfitWindow(profession)
             if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
         end)
         row:SetScript("OnClick", function(self)
-            if self.entry.link then HandleModifiedItemClick(self.entry.link) end
+            if self.entry.link and HandleModifiedItemClick(self.entry.link) then return end
+            view.OpenDetail(self.entry)
         end)
         return row
     end
 
     function profession.UpdateGoldScanStatus(view)
+        if view.detail:IsShown() then return end
         if not _G[profession.catalogName] then
             view.message:SetText(profession.IsRefreshing() and ("Scanning recipes, keep your own " .. profession.name .. " open")
                 or ("Open your own " .. profession.name .. " and use " .. profession.scanCommand))
@@ -93,7 +95,7 @@ function addon.AttachProfessionProfitWindow(profession)
     end
 
     function profession.UpdateGoldView(view)
-        if not view:IsShown() then return end
+        if not view:IsShown() or view.detail:IsShown() then return end
         view.materials:Update()
         view.prices:Update()
         if not view.skill:HasFocus() then view.skill:SetText(profession.GoldMaxSkill() or "") end
@@ -146,13 +148,15 @@ function addon.AttachProfessionProfitWindow(profession)
         view:SetAllPoints()
         view:Hide()
         window.gold = view
-        view.search = CreateFrame("EditBox", nil, view, "SearchBoxTemplate")
+        view.page = CreateFrame("Frame", nil, view)
+        view.page:SetAllPoints()
+        view.search = CreateFrame("EditBox", nil, view.page, "SearchBoxTemplate")
         view.search:SetPoint("TOPLEFT", 21, -59)
         view.search:SetSize(105, 20)
         view.search:SetAutoFocus(false)
         local function Dropdown(x, width, label, option, choices)
-            Text(view, x, -34, width, "GameFontNormal"):SetText(label)
-            local dropdown = CreateFrame("DropdownButton", nil, view, "WowStyle1DropdownTemplate")
+            Text(view.page, x, -34, width, "GameFontNormal"):SetText(label)
+            local dropdown = CreateFrame("DropdownButton", nil, view.page, "WowStyle1DropdownTemplate")
             dropdown:SetPoint("TOPLEFT", x, -57)
             dropdown:SetWidth(width)
             dropdown:SetupMenu(function(_, root)
@@ -169,7 +173,7 @@ function addon.AttachProfessionProfitWindow(profession)
         view.prices = Dropdown(311, 135, "Prices", "prices", {
             { "Latest lowest", "lowest" }, { "14-day median", "median" },
         })
-        local unlearned = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
+        local unlearned = CreateFrame("CheckButton", nil, view.page, "UICheckButtonTemplate")
         unlearned:SetPoint("TOPLEFT", 458, -55)
         unlearned.Text:SetText("Include unlearned")
         unlearned:SetChecked(Character().gold.includeUnlearned)
@@ -178,7 +182,7 @@ function addon.AttachProfessionProfitWindow(profession)
             profession.UpdateWindow()
         end)
         if profession.excludeGear then
-            local gear = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
+            local gear = CreateFrame("CheckButton", nil, view.page, "UICheckButtonTemplate")
             gear:SetPoint("TOPLEFT", 608, -55)
             gear.Text:SetText("Exclude gear")
             gear:SetChecked(Character().gold.excludeGear)
@@ -188,8 +192,8 @@ function addon.AttachProfessionProfitWindow(profession)
             end)
         end
         local skillX = profession.excludeGear and 752 or 650
-        Text(view, skillX, -34, 878 - skillX, "GameFontNormal"):SetText("Max " .. profession.shortName .. " skill")
-        view.skill = CreateFrame("EditBox", nil, view, "InputBoxTemplate")
+        Text(view.page, skillX, -34, 878 - skillX, "GameFontNormal"):SetText("Max " .. profession.shortName .. " skill")
+        view.skill = CreateFrame("EditBox", nil, view.page, "InputBoxTemplate")
         view.skill:SetPoint("TOPLEFT", skillX + 6, -58)
         view.skill:SetSize(54, 24)
         view.skill:SetAutoFocus(false)
@@ -209,7 +213,7 @@ function addon.AttachProfessionProfitWindow(profession)
             self.edited = false
             profession.UpdateWindow()
         end)
-        local auto = CreateFrame("Button", nil, view, "UIPanelButtonTemplate")
+        local auto = CreateFrame("Button", nil, view.page, "UIPanelButtonTemplate")
         auto:SetPoint("LEFT", view.skill, "RIGHT", 6, 0)
         auto:SetSize(48, 24)
         auto:SetText("Auto")
@@ -218,14 +222,14 @@ function addon.AttachProfessionProfitWindow(profession)
             Character().gold.maxSkill = nil
             profession.UpdateWindow()
         end)
-        Text(view, 16, -93, 240, "GameFontNormal"):SetText("Item / recipe")
-        Text(view, 262, -93, 62, "GameFontNormal"):SetText(profession.skillLabel)
-        Text(view, 330, -93, 32, "GameFontNormal"):SetText("Qty")
-        Text(view, 368, -93, 64, "GameFontNormal"):SetText("AH units")
-        Text(view, 438, -93, 126, "GameFontNormal"):SetText("Cash materials")
-        Text(view, 570, -93, 126, "GameFontNormal"):SetText("Sale value")
-        Text(view, 702, -93, 144, "GameFontNormal"):SetText("Margin before AH fees")
-        view.scroll = CreateFrame("ScrollFrame", nil, view, "ScrollFrameTemplate")
+        Text(view.page, 16, -93, 240, "GameFontNormal"):SetText("Item / recipe")
+        Text(view.page, 262, -93, 62, "GameFontNormal"):SetText(profession.skillLabel)
+        Text(view.page, 330, -93, 32, "GameFontNormal"):SetText("Qty")
+        Text(view.page, 368, -93, 64, "GameFontNormal"):SetText("AH units")
+        Text(view.page, 438, -93, 126, "GameFontNormal"):SetText("Cash materials")
+        Text(view.page, 570, -93, 126, "GameFontNormal"):SetText("Sale value")
+        Text(view.page, 702, -93, 144, "GameFontNormal"):SetText("Margin before AH fees")
+        view.scroll = CreateFrame("ScrollFrame", nil, view.page, "ScrollFrameTemplate")
         view.scroll:SetPoint("TOPLEFT", 16, -120)
         view.scroll:SetPoint("BOTTOMRIGHT", -40, 40)
         view.scroll.ScrollBar:ClearAllPoints()
@@ -238,7 +242,8 @@ function addon.AttachProfessionProfitWindow(profession)
         view.scroll:SetScrollChild(view.content)
         view.rows = {}
         view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
-        view.scan = Text(view, 16, -519, 862)
+        view.scan = Text(view.page, 16, -519, 862)
         view.search:HookScript("OnTextChanged", function() profession.UpdateWindow() end)
+        addon.CreateProfessionDetailView(profession, view)
     end
 end
