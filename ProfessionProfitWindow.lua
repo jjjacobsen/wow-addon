@@ -1,5 +1,6 @@
 local _, addon = ...
 local ROW_HEIGHT = 36
+local FAVORITE_GAP = 8
 
 function addon.CreateProfessionWindow(name, title)
     local window = CreateFrame("Frame", name, UIParent, "BasicFrameTemplate")
@@ -61,13 +62,44 @@ function addon.AttachProfessionProfitWindow(profession)
         GameTooltip:Show()
     end
 
-    local function MakeRow(view, index)
+    local function IsFavorite(recipeID)
+        local favorites = Character().gold.favorites
+        return favorites and favorites[recipeID]
+    end
+
+    local function FavoriteTooltip(button)
+        GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+        GameTooltip:SetText(IsFavorite(button:GetParent().entry.recipeID) and "Remove favorite" or "Favorite recipe")
+        GameTooltip:Show()
+    end
+
+    local UpdateRows
+    local function MakeRow(view)
         local row = CreateFrame("Button", nil, view.content)
         row:SetSize(830, ROW_HEIGHT)
-        row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT)
         row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-        row.item = Text(row, 0, 0, 240)
-        row.recipe = Text(row, 0, -16, 240, "GameFontDisableSmall")
+        row.favorite = CreateFrame("Button", nil, row)
+        row.favorite:SetSize(20, 18)
+        row.favorite:SetPoint("TOPLEFT", 0, -1)
+        local normal = row.favorite:CreateTexture(nil, "ARTWORK")
+        normal:SetAllPoints()
+        row.favorite:SetNormalTexture(normal)
+        local highlight = row.favorite:CreateTexture(nil, "HIGHLIGHT")
+        highlight:SetAllPoints()
+        row.favorite:SetHighlightTexture(highlight, "ADD")
+        row.favorite:SetScript("OnEnter", FavoriteTooltip)
+        row.favorite:SetScript("OnLeave", GameTooltip_Hide)
+        row.favorite:SetScript("OnHide", function(self)
+            if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
+        end)
+        row.favorite:SetScript("OnClick", function()
+            local gold = Character().gold
+            gold.favorites = gold.favorites or {}
+            gold.favorites[row.entry.recipeID] = not gold.favorites[row.entry.recipeID] or nil
+            UpdateRows(view)
+        end)
+        row.item = Text(row, 24, 0, 216)
+        row.recipe = Text(row, 24, -16, 216, "GameFontDisableSmall")
         row.skill = Text(row, 246, -5, 62)
         row.quantity = Text(row, 314, -5, 32)
         row.supply = Text(row, 352, -5, 64)
@@ -94,28 +126,36 @@ function addon.AttachProfessionProfitWindow(profession)
         end
     end
 
-    function profession.UpdateGoldView(view)
-        if not view:IsShown() or view.detail:IsShown() then return end
-        view.materials:Update()
-        view.prices:Update()
-        if not view.skill:HasFocus() then view.skill:SetText(profession.GoldMaxSkill() or "") end
-        local rows = {}
-        local query = view.search:GetText():lower()
-        for _, entry in ipairs(profession.GoldRows()) do
-            local name = entry.name:match("|h%[(.-)%]|h") or entry.name
-            if (not addon.emptySkillOnly or entry.requiredSkill == nil)
-                and (query == "" or name:lower():find(query, 1, true)
-                    or (entry.recipe.name or ""):lower():find(query, 1, true)) then
-                table.insert(rows, entry)
-            end
+    UpdateRows = function(view)
+        local rows, others = {}, {}
+        for _, entry in ipairs(view.entries) do
+            table.insert(IsFavorite(entry.recipeID) and rows or others, entry)
+        end
+        local favoriteCount = #rows
+        for _, entry in ipairs(others) do table.insert(rows, entry) end
+        local divided = favoriteCount > 0 and #others > 0
+        view.divider:Hide()
+        view.divider:ClearAllPoints()
+        if divided then
+            view.divider:SetPoint("TOPLEFT", 0, -favoriteCount * ROW_HEIGHT - FAVORITE_GAP / 2)
+            view.divider:Show()
         end
         for index, entry in ipairs(rows) do
             local row = view.rows[index]
             if not row then
-                row = MakeRow(view, index)
+                row = MakeRow(view)
                 view.rows[index] = row
             end
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT
+                - (divided and index > favoriteCount and FAVORITE_GAP or 0))
             row.entry = entry
+            -- Forever 70938 AuctionHouseFavoriteButtonBaseMixin uses these atlases and highlight alphas.
+            local favorite = IsFavorite(entry.recipeID)
+            local atlas = favorite and "auctionhouse-icon-favorite" or "auctionhouse-icon-favorite-off"
+            row.favorite:GetNormalTexture():SetAtlas(atlas)
+            row.favorite:GetHighlightTexture():SetAtlas(atlas)
+            row.favorite:GetHighlightTexture():SetAlpha(favorite and 0.2 or 0.4)
             row.item:SetText(entry.name)
             row.recipe:SetText("#" .. entry.recipeID .. (entry.needsRecipe and " | Unlearned/unknown recipe required" or " | Learned"))
             row.skill:SetText(entry.requiredSkill or "-")
@@ -127,12 +167,31 @@ function addon.AttachProfessionProfitWindow(profession)
             row.margin:SetTextColor(entry.margin and entry.margin > 0 and 0.2 or 1,
                 entry.margin and entry.margin < 0 and 0.2 or 1, entry.margin and entry.margin ~= 0 and 0.2 or 1)
             row:Show()
-            if row:IsMouseOver() then Tooltip(row) end
+            if row.favorite:IsMouseOver() then FavoriteTooltip(row.favorite)
+            elseif row:IsMouseOver() then Tooltip(row) end
         end
         for index = #rows + 1, #view.rows do view.rows[index]:Hide() end
-        view.content:SetHeight(math.max(1, #rows * ROW_HEIGHT))
+        view.content:SetHeight(math.max(1, #rows * ROW_HEIGHT + (divided and FAVORITE_GAP or 0)))
         view.scroll:SetVerticalScroll(math.min(view.scroll:GetVerticalScroll(), view.scroll:GetVerticalScrollRange()))
         view.message:SetText(#rows == 0 and "No matching recipes" or "")
+    end
+
+    function profession.UpdateGoldView(view)
+        if not view:IsShown() or view.detail:IsShown() then return end
+        view.materials:Update()
+        view.prices:Update()
+        if not view.skill:HasFocus() then view.skill:SetText(profession.GoldMaxSkill() or "") end
+        view.entries = {}
+        local query = view.search:GetText():lower()
+        for _, entry in ipairs(profession.GoldRows()) do
+            local name = entry.name:match("|h%[(.-)%]|h") or entry.name
+            if (not addon.emptySkillOnly or entry.requiredSkill == nil)
+                and (query == "" or name:lower():find(query, 1, true)
+                    or (entry.recipe.name or ""):lower():find(query, 1, true)) then
+                table.insert(view.entries, entry)
+            end
+        end
+        UpdateRows(view)
         profession.UpdateGoldScanStatus(view)
         local _, _, scannedAt, market = addon.AuctionPrices.Lookup()
         local scan = "No AH scan for this market"
@@ -222,7 +281,11 @@ function addon.AttachProfessionProfitWindow(profession)
             Character().gold.maxSkill = nil
             profession.UpdateWindow()
         end)
-        Text(view.page, 16, -93, 240, "GameFontNormal"):SetText("Item / recipe")
+        local favoriteHeader = view.page:CreateTexture(nil, "ARTWORK")
+        favoriteHeader:SetAtlas("auctionhouse-icon-favorite")
+        favoriteHeader:SetSize(16, 16)
+        favoriteHeader:SetPoint("TOPLEFT", 18, -95)
+        Text(view.page, 40, -93, 216, "GameFontNormal"):SetText("Item / recipe")
         Text(view.page, 262, -93, 62, "GameFontNormal"):SetText(profession.skillLabel)
         Text(view.page, 330, -93, 32, "GameFontNormal"):SetText("Qty")
         Text(view.page, 368, -93, 64, "GameFontNormal"):SetText("AH units")
@@ -240,6 +303,10 @@ function addon.AttachProfessionProfitWindow(profession)
         view.content = CreateFrame("Frame", nil, view.scroll)
         view.content:SetWidth(830)
         view.scroll:SetScrollChild(view.content)
+        view.divider = view.content:CreateTexture(nil, "ARTWORK")
+        view.divider:SetSize(830, 1)
+        view.divider:SetColorTexture(1, 0.82, 0, 0.3)
+        view.divider:Hide()
         view.rows = {}
         view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
         view.scan = Text(view.page, 16, -519, 862)
