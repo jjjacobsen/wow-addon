@@ -119,7 +119,7 @@ function addon.AttachProfessionProfitWindow(profession)
     end
 
     function profession.UpdateGoldScanStatus(view)
-        if view.detail:IsShown() then return end
+        if view.detail:IsShown() or view.hidden:IsShown() then return end
         if not _G[profession.catalogName] then
             view.message:SetText(profession.IsRefreshing() and ("Scanning recipes, keep your own " .. profession.name .. " open")
                 or ("Open your own " .. profession.name .. " and use " .. profession.scanCommand))
@@ -177,15 +177,17 @@ function addon.AttachProfessionProfitWindow(profession)
     end
 
     function profession.UpdateGoldView(view)
-        if not view:IsShown() or view.detail:IsShown() then return end
+        if not view:IsShown() or view.detail:IsShown() or view.hidden:IsShown() then return end
         view.materials:Update()
         view.prices:Update()
         if not view.skill:HasFocus() then view.skill:SetText(profession.GoldMaxSkill() or "") end
         view.entries = {}
         local query = view.search:GetText():lower()
+        local hiddenRecipes = Character().gold.hiddenRecipes or {}
         for _, entry in ipairs(profession.GoldRows()) do
             local name = entry.name:match("|h%[(.-)%]|h") or entry.name
-            if (not addon.emptySkillOnly or entry.requiredSkill == nil)
+            if not hiddenRecipes[entry.recipeID]
+                and (not addon.emptySkillOnly or entry.requiredSkill == nil)
                 and (query == "" or name:lower():find(query, 1, true)
                     or (entry.recipe.name or ""):lower():find(query, 1, true)) then
                 table.insert(view.entries, entry)
@@ -309,8 +311,14 @@ function addon.AttachProfessionProfitWindow(profession)
         view.divider:Hide()
         view.rows = {}
         view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
-        view.scan = Text(view.page, 16, -519, 862)
+        view.scan = Text(view.page, 16, -519, 742)
+        local hiddenButton = CreateFrame("Button", nil, view.page, "UIPanelButtonTemplate")
+        hiddenButton:SetPoint("BOTTOMRIGHT", -16, 8)
+        hiddenButton:SetSize(116, 24)
+        hiddenButton:SetText("Hidden recipes")
+        hiddenButton:SetScript("OnClick", function() view.OpenHidden() end)
         view.search:HookScript("OnTextChanged", function() profession.UpdateWindow() end)
         addon.CreateProfessionDetailView(profession, view)
+        addon.CreateProfessionHiddenView(profession, view)
     end
 end

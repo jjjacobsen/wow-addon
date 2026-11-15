@@ -13,6 +13,7 @@ ProfessionCatalog.lua
 VendorPrices.lua
 ProfessionProfit.lua
 ProfessionDetailWindow.lua
+ProfessionHiddenWindow.lua
 ProfessionProfitWindow.lua
 Leatherworking.lua
 LeatherworkingGold.lua
