@@ -31,12 +31,30 @@ function addon.AttachProfessionCatalog(profession)
             and not C_TradeSkillUI.IsNPCCrafting()
     end
 
-    local function ReadItem(item)
-        if profession.ReadItem then return profession.ReadItem(item) end
-        local name, link = C_Item.GetItemInfo(item.itemID)
-        if not name or not link then return false end
-        item.link, item.loaded = link, true
+    local function ReadBinding(record, link)
+        local name, loadedLink, _, _, _, _, _, _, _, _, _, _, _, bindType = C_Item.GetItemInfo(link)
+        if not name or name == "" or not loadedLink or bindType == nil then return false end
+        local bindToAccount = C_Item.IsItemBindToAccount(link)
+        local bindToAccountUntilEquip = C_Item.IsItemBindToAccountUntilEquip(link)
+        if bindToAccount == nil or bindToAccountUntilEquip == nil then return false end
+        record.bindType = bindType
+        record.bindToAccount = bindToAccount
+        record.bindToAccountUntilEquip = bindToAccountUntilEquip
         return true
+    end
+
+    local function ReadItem(item)
+        local ready
+        if profession.ReadItem then
+            ready = profession.ReadItem(item)
+        else
+            local name, link = C_Item.GetItemInfo(item.itemID)
+            if not name or not link then return false end
+            item.link, item.loaded = link, true
+            ready = true
+        end
+        local bindingReady = item.loaded and ReadBinding(item, item.link)
+        return ready and bindingReady
     end
 
     local function ScanReady()
@@ -140,10 +158,17 @@ function addon.AttachProfessionCatalog(profession)
         if run.recipeIndex > #run.recipeIDs and run.index > #run.itemIDs and not next(run.pending) then
             local missing = 0
             for _, item in pairs(run.catalog.items) do
+                if item.loaded and item.bindType == nil and not ReadBinding(item, item.link) then return end
                 if not item.loaded or (item.slot and not item.stats) then missing = missing + 1 end
             end
             local unresolved, requirements = 0, 0
             for recipeID, recipe in pairs(run.catalog.recipes) do
+                local item = recipe.itemID and run.catalog.items[recipe.itemID]
+                -- Keep each native output variant separate from the base item snapshot.
+                -- Retry cold preview links within this scan's existing timeout.
+                if item and item.loaded and recipe.bindType == nil then
+                    if not ReadBinding(recipe, recipe.link or item.link) then return end
+                end
                 if not recipe.itemID and not recipe.nonItem then unresolved = unresolved + 1 end
                 if profession.RequiredSkill(recipeID) then requirements = requirements + 1 end
             end

@@ -32,19 +32,20 @@ function addon.AttachProfessionProfit(profession)
         return lowest
     end
 
-    local function SaleEligibility(link)
-        if not link then return nil, "Output item data unavailable" end
-        local name, _, _, _, _, _, _, _, _, _, _, _, _, bindType = C_Item.GetItemInfo(link)
-        if not name or name == "" or bindType == nil then return nil, "Output binding unavailable" end
+    local function SaleEligibility(record)
+        if not record or record.bindType == nil or record.bindToAccount == nil
+            or record.bindToAccountUntilEquip == nil then return nil, "Output binding unavailable" end
+        local bindType = record.bindType
         if (bindType ~= Enum.ItemBind.None and bindType ~= Enum.ItemBind.OnEquip and bindType ~= Enum.ItemBind.OnUse)
-            or C_Item.IsItemBindToAccount(link) or C_Item.IsItemBindToAccountUntilEquip(link) then
+            or record.bindToAccount or record.bindToAccountUntilEquip then
             return false, "Output cannot be auctioned (binding)"
         end
         return true
     end
 
-    local function SalePrice(link, eligible, reason)
-        if eligible == nil and reason == nil then eligible, reason = SaleEligibility(link) end
+    local function SalePrice(link, record)
+        if not link then return nil, "Output item data unavailable" end
+        local eligible, reason = SaleEligibility(record)
         if eligible ~= true then return nil, reason end
         local price = Price(link)
         return price, not price and "Output AH price unavailable" or nil
@@ -121,7 +122,7 @@ function addon.AttachProfessionProfit(profession)
             local expanded = farm or character.gold.materials == "raw"
             if expanded and link and FarmRaw(ingredient.itemID) then
                 if farm then
-                    local price = SalePrice(link)
+                    local price = SalePrice(link, catalog.items[ingredient.itemID])
                     line.source, line.cost = "Farmed, zero cash", 0
                     line.forgone = price and price * quantity
                     AddCost(entry, 0, line.forgone)
@@ -183,7 +184,7 @@ function addon.AttachProfessionProfit(profession)
         for recipeID, recipe in pairs(catalog.recipes) do
             local requiredSkill = profession.RequiredSkill(recipeID)
             local link = OutputLink(recipe)
-            local eligible, reason = SaleEligibility(link)
+            local eligible = SaleEligibility(recipe)
             if not recipe.nonItem and eligible ~= false then
                 local equipLoc
                 if recipe.itemID then
@@ -211,7 +212,7 @@ function addon.AttachProfessionProfit(profession)
                     }
                     entry.supply, entry.listings = addon.AuctionPrices.Supply(link)
                     Ingredients(recipeID, 1, entry, producers, {}, 0)
-                    local price, reason = SalePrice(link, eligible, reason)
+                    local price, reason = SalePrice(link, recipe)
                     entry.sale = price and recipe.quantity and price * recipe.quantity
                     if reason then Issue(entry, reason) end
                     if entry.sale and entry.cash then
@@ -319,7 +320,7 @@ function addon.AttachProfessionProfit(profession)
             line.unitPrice = line.farm and 0 or line.vendor or Price(line.link)
         end
         local reason
-        basket.savedPrice, reason = SalePrice(basket.link)
+        basket.savedPrice, reason = SalePrice(basket.link, recipe)
         if reason then Issue(basket, reason) end
         return basket
     end
