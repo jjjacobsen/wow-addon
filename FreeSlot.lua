@@ -189,6 +189,7 @@ local function CreateWindow()
     window:EnableMouse(true)
     window:SetClampedToScreen(true)
     window.TitleText:SetText("Free Slot")
+    addon.ManageWindow(window)
     window.Refresh = Refresh
     table.insert(UISpecialFrames, "JJFreeSlotFrame")
 

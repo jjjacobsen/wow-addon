@@ -23,6 +23,13 @@ Close the window with Close, its top-right close button, or Escape. Pending sele
 Mute spell failure sounds mutes the five spell fizzle files for all failures, separate from Filter common errors. It does not mute normal spell sounds or change the error speech setting
 Turn it off and reload to restore those sounds
 
+## Movable windows
+
+Movable windows starts enabled. Drag a title bar to move a window. Click a window or its controls, or open it, to bring it to the front. Confirmation dialogs stay above these windows
+Supports the auction house, Character, Talents and Spellbook, professions, bank, merchant, trade, mail, quest and gossip windows, dressing room, friends, combined and separate bags, and all addon windows
+Use `/jj resetwindows` outside combat to reset all managed windows. Native windows use Blizzard's layout, including hidden windows when next opened. Addon windows return to the center and remain draggable. Positions last only until a UI reload or logout. Movement is disabled in combat
+Toggle Movable windows in `/jj`, then click Reload
+
 ## Maximum camera zoom
 
 Maximum camera zoom starts off. Enable it in `/jj`, then click Reload to set the native Max Camera Distance slider maximum, `2.0` in Forever build 1.60.1.70888. Scroll out manually. It does not force the camera position or bypass native limits

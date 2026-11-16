@@ -16,6 +16,7 @@ function addon.CreateProfessionWindow(name, title)
     window:SetScript("OnDragStart", window.StartMoving)
     window:SetScript("OnDragStop", window.StopMovingOrSizing)
     window.TitleText:SetText(title)
+    addon.ManageWindow(window)
     table.insert(UISpecialFrames, name)
     return window
 end

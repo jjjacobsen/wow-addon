@@ -26,6 +26,7 @@ local function CreateWindow()
     window:SetScript("OnDragStart", window.StartMoving)
     window:SetScript("OnDragStop", window.StopMovingOrSizing)
     window.TitleText:SetText("Saved Bank")
+    addon.ManageWindow(window)
     table.insert(UISpecialFrames, "JJSavedBankFrame")
 
     window.character = window:CreateFontString(nil, "OVERLAY", "GameFontNormal")

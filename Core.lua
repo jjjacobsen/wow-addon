@@ -62,6 +62,7 @@ local function CreateSettings()
     window:SetFrameStrata("DIALOG")
     window:EnableMouse(true)
     window.TitleText:SetText("wow-addon")
+    addon.ManageWindow(window)
     table.insert(UISpecialFrames, "JJSettingsFrame")
 
     local close = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
@@ -141,6 +142,8 @@ local function CreateSettings()
             window:SetShown(not window:IsShown())
         elseif command == "scan" or command == "clear" then
             addon.AuctionHouseCommand(command)
+        elseif command == "resetwindows" then
+            addon.ResetWindowPositions()
         elseif command == "bank" then
             addon.SavedBankCommand()
         elseif command == "free" then
@@ -176,7 +179,7 @@ local function CreateSettings()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj empty, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan, /jj tailor, /jj tailorscan")
+            print("wow-addon: /jj, /jj resetwindows, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj empty, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan, /jj tailor, /jj tailorscan")
         end
     end
 end
