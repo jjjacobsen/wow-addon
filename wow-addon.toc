@@ -20,6 +20,7 @@ ProfessionProfitWindow.lua
 Leatherworking.lua
 LeatherworkingGold.lua
 LeatherworkingGoldWindow.lua
+LeatherworkingExcludedGearWindow.lua
 LeatherworkingWindow.lua
 Cooking.lua
 FirstAid.lua

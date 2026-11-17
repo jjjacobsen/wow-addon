@@ -101,12 +101,13 @@ local function SelectView(index)
     JJLWCharacter.lastTab = index
     PanelTemplates_SetTab(window, index)
     local characterView = index == 1
-    window.character:SetShown(characterView)
-    window.recommendations:SetShown(characterView)
+    window.character:SetShown(characterView and not window.excludedOpen)
+    window.recommendations:SetShown(characterView and not window.excludedOpen)
+    window.excluded:SetShown(characterView and window.excludedOpen)
     window.table:SetShown(index == 2)
     window.slot:SetShown(index == 2)
     window.slotLabel:SetShown(index == 2)
-    window.panel:SetShown(index ~= 3)
+    window.panel:SetShown(index ~= 3 and not (characterView and window.excludedOpen))
     window.gold:SetShown(index == 3)
     window.panel:SetWidth(characterView and 590 or window:GetWidth())
     window.levelLabel:ClearAllPoints()
@@ -132,8 +133,27 @@ local function CreateRecommendations(panel)
             row:SetSize(558, 40)
             row.slot = slot[2]
             Text(row, 0, -8, 84, "GameFontNormal"):SetText(slot[1])
-            row.item = Text(row, 90, -8, 350)
+            row.item = Text(row, 114, -8, 326)
             row.delta = Text(row, 448, -8, 94)
+            row.exclude = CreateFrame("Button", nil, row)
+            row.exclude:SetPoint("TOPLEFT", 90, -8)
+            row.exclude:SetSize(20, 20)
+            row.exclude:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-UP")
+            row.exclude:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-DOWN")
+            row.exclude:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
+            row.exclude:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText("Exclude gear")
+                GameTooltip:Show()
+            end)
+            row.exclude:SetScript("OnLeave", GameTooltip_Hide)
+            row.exclude:SetScript("OnHide", function(self)
+                if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
+            end)
+            row.exclude:SetScript("OnClick", function()
+                JJLWCharacter.excludedGear[row.itemID] = true
+                UpdateWindow(false)
+            end)
             row:SetScript("OnEnter", function(self)
                 if self.link then ShowTooltip(self) end
             end)
@@ -144,6 +164,15 @@ local function CreateRecommendations(panel)
             table.insert(window.recommendationRows, row)
         end
     end
+    local excluded = CreateFrame("Button", nil, recommendations, "UIPanelButtonTemplate")
+    excluded:SetPoint("BOTTOMRIGHT", -16, 8)
+    excluded:SetSize(112, 24)
+    excluded:SetText("Excluded gear")
+    excluded:SetScript("OnClick", function()
+        window.excludedOpen = true
+        window.excluded.scroll:SetVerticalScroll(0)
+        SelectView(1)
+    end)
 end
 
 local function UpdateRecommendations(rows, matching)
@@ -157,6 +186,8 @@ local function UpdateRecommendations(rows, matching)
         local entry = best[row.slot]
         local delta = entry and entry.delta
         row.link = entry and entry.item.link
+        row.itemID = entry and entry.item.itemID
+        row.exclude:SetShown(entry ~= nil)
         row.item:SetText(row.link or (matching[row.slot] and "No confirmed upgrade" or "No matching item"))
         row.delta:SetText(delta == nil and "-" or (delta > 0 and "+" or "") .. tostring(delta))
         row.delta:SetTextColor(delta and delta > 0 and 0.2 or 1, delta and delta < 0 and 0.2 or 1, delta and delta ~= 0 and 0.2 or 1)
@@ -200,6 +231,10 @@ UpdateWindow = function(refreshGold)
         end
         return
     end
+    if window.excluded:IsShown() then
+        window.excluded:UpdateRows()
+        return
+    end
     local options, catalog = JJLWCharacter, JJLWCatalog
     local characterView = window.character:IsShown()
     if not window.level:HasFocus() then window.level:SetText(options.maxLevel or currentLevel) end
@@ -221,6 +256,7 @@ UpdateWindow = function(refreshGold)
             recipeCount = recipeCount + 1
             local item = recipe.itemID and catalog.items[recipe.itemID]
             if item and item.slot and item.requiredLevel and wearable[item.itemID]
+                and (not characterView or not options.excludedGear[item.itemID])
                 and (characterView or options.slot == 0 or options.slot == item.slot)
                 and item.requiredLevel <= (options.maxLevel or currentLevel) then
                 matching[item.slot] = true
@@ -277,7 +313,11 @@ end
 lw.UpdateWindow = UpdateWindow
 
 local function CreateWindow()
-    window = addon.CreateProfessionWindow("JJLeatherworkingFrame", "Leatherworking gear")
+    window = addon.CreateProfessionWindow("JJLeatherworkingFrame", "Leatherworking")
+    window.excluded = lw.CreateExcludedGearView(window, function()
+        window.excludedOpen = false
+        SelectView(1)
+    end)
 
     for index, label in ipairs({ "Character", "Table", "Gold making" }) do
         local tab = CreateFrame("Button", nil, window, "PanelTabButtonTemplate")

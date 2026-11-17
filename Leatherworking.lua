@@ -69,7 +69,7 @@ addon.AttachProfessionCatalog(lw)
 
 function addon.LeatherworkingCommand()
     if not enabled then
-        print("wow-addon: Enable Leatherworking gear in /jj, then click Reload")
+        print("wow-addon: Enable Leatherworking in /jj, then click Reload")
         return
     end
     lw.ToggleWindow()
@@ -77,18 +77,19 @@ end
 
 function addon.LeatherworkingScanCommand()
     if not enabled then
-        print("wow-addon: Enable Leatherworking gear in /jj, then click Reload")
+        print("wow-addon: Enable Leatherworking in /jj, then click Reload")
         return
     end
     lw.ScanRecipes()
 end
 
-addon.RegisterFeature("leatherworking", "Leatherworking gear", function(value)
+addon.RegisterFeature("leatherworking", "Leatherworking", function(value)
     enabled = value
     if not enabled then return end
     addon.AddMinimapButton("leatherworking", "Leatherworking", 2108, 180,
         addon.LeatherworkingCommand, lw.OpenAndScan)
     JJLWCharacter = JJLWCharacter or { stat = "ITEM_MOD_INTELLECT_SHORT", slot = 0, learned = {} }
+    JJLWCharacter.excludedGear = JJLWCharacter.excludedGear or {}
     if JJLWCharacter.stat == "ITEM_MOD_SPELL_POWER_SHORT" then
         JJLWCharacter.stat = "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"
     end

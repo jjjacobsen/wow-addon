@@ -123,15 +123,16 @@ Owned stacks also show AH totals for that stack. Native recipe outputs show tota
 Prices are account-wide in `JJAuctionPrices`, separate from `JJSettings`, and grouped by region, independent PvP/RP/Hardcore rules, and faction, not realm
 `/jj clear` asks for confirmation, then clears only the current market's prices and history and cancels its active scan. It keeps settings, other markets, and the scan cooldown
 
-## Leatherworking gear
+## Leatherworking
 
 Right-click any Leatherworking, Cooking, First Aid, Engineering, or Tailoring minimap icon to open your own native profession window and scan when recipes are ready. This does not open the addon browser or refresh profit rows
 The opening request stops after 10 seconds, on closing the native window, or when another icon requests a scan. Repeated clicks do not restart a pending or active scan
 
 Restart WoW after installing the new files. Left-click the Leatherworking minimap icon or use `/jj lw` to toggle the browser
-The icon starts at 9 o'clock. Left-drag to move it around the minimap. Its position is saved account-wide in `JJSettings.minimapButtons`. It appears only while Leatherworking gear is enabled
+The icon starts at 9 o'clock. Left-drag to move it around the minimap. Its position is saved account-wide in `JJSettings.minimapButtons`. It appears only while Leatherworking is enabled
 The last tab is saved per character, with Character selected on first use. Character shows your native character model and read-only equipped armor icons on the left. Hover for native equipped-item tooltips
 Choose a stat and max equip level to see one top result for each of the nine supported slots on the right. Each result shows its item link and selected-stat difference from equipped gear. Results use the highest stat value per slot, which gives the largest difference when equipped data is available. Equal values sort by item ID, then recipe ID
+Click a result's minus button to exclude that item and show the next best result under the same filters. Excluded gear opens the list, where Restore makes an item eligible again. Exclusions are saved per character in `JJLWCharacter.excludedGear` by item ID, affect only Character recommendations, and do not change Table or Gold making. Availability is not checked automatically
 Character ignores the Table slot filter and keeps it unchanged. Table keeps the full table, slot selector, sorting, and native modified-click link actions. Both tabs share stat, max equip level, Upgrades only, and the catalog
 Open your own Leatherworking, wait for recipes to load, then use `/jj lwscan` to save learned and unlearned native recipes. Run it again to update recipes or retry missing items. Without a right-click request, opening, closing, and recipe-data events do not start scans. The command requires your own native Leatherworking view with recipes ready and does not start another scan while one is active. Later, browse anywhere without the profession window open
 Max equip level follows your character level until you edit it. Raise it to plan higher-level equipment. Auto restores level tracking. Filters are saved per character
@@ -160,7 +161,7 @@ Click a profit row in any of the five profession windows for recipe details. Bac
 Details are display-only and use the same saved scan and per-character Materials and Prices choices as the table. Changes on either page apply to both, including Leatherworking's Farm leather and hides mode. There are no detail searches, refresh button, purchases, timers, or background updates
 Carried bags are read only when opening details or changing Crafts, Materials, or Prices, never from equipment or banks. Owned intermediaries are used first, then remaining production rounds up to full crafts across the selected quantity and repeated inputs. Farm inputs cost zero under the table's existing rules. Buy from AH, Buy from vendors, and Total new spending exclude owned materials. Output sale values and cash margins are estimates before AH fees
 
-Leatherworking gear starts enabled and controls all three tabs. Toggle it in `/jj`, then click Reload. Close the browser with its top-right close button or Escape
+Leatherworking starts enabled and controls all three tabs. Toggle it in `/jj`, then click Reload. Close the browser with its top-right close button or Escape
 
 ## Craft records
 
