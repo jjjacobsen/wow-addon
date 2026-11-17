@@ -17,7 +17,7 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 Use `/jj` to open the feature settings. Checkbox changes are saved between sessions. Except for Tank mode and Enable Damage Meter, they take effect after a UI reload
 Reload is enabled only when these saved selections differ from the settings applied at startup. Click Reload to apply them
-Reload-based features start enabled except Maximum camera zoom, Five-second rule, and Filter Trade chat. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
+Reload-based features start enabled except Maximum camera zoom, Five-second rule, Filter Trade chat, and Group finder role filter. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
 
 Mute spell failure sounds mutes the five spell fizzle files for all failures, separate from Filter common errors. It does not mute normal spell sounds or change the error speech setting
@@ -54,6 +54,12 @@ Messages are hidden for any of these rules, after removing link data, colors, te
 - The word `guild` or a native guild finder/community link, together with `recruitment`, `recruits`, or `seeking`, case-insensitive. A guild mention or link alone does not match
 
 These rules are fixed. Native chat privacy restrictions can stop filtering while chat messages are secret
+
+## Group finder role filter
+
+Restart WoW after installing the new file. Group finder role filter starts off. Enable it in `/jj`, then click Reload
+In the native Looking For Group Browse tab, open the top-right cog menu for All roles, Tanks, or Healers and Hide groups. Roles filter only solo Players, including players with more than one role. Hide groups removes group results and empty sections. Your own listing and the native Ignore Suggested Level option stay unchanged. Missing role data does not match Tanks or Healers
+Filters cached results only, with native sorting. No extra searches, automatic refreshes, or automatic invites. All roles and visible groups are restored after a UI reload or login
 
 ## Tank nameplates
 
