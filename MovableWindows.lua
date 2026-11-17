@@ -41,6 +41,27 @@ local function StopDragging(frame, entry)
     frame:SetUserPlaced(false)
 end
 
+local function RaiseWindow(frame, entry)
+    if entry.kind == "bag" and frame:GetParent() == ContainerFrameContainer then
+        ContainerFrameContainer:Raise()
+    end
+    frame:Raise()
+end
+
+local function RaiseFocusedBag()
+    if InCombatLockdown() then return end
+    -- Only the top focus was clicked, not other windows beneath the cursor.
+    local frame = GetMouseFoci()[1]
+    while frame and frame ~= UIParent and not frame:IsForbidden() do
+        local entry = windows[frame]
+        if entry and entry.kind == "bag" and frame:GetParent() == ContainerFrameContainer then
+            RaiseWindow(frame, entry)
+            return
+        end
+        frame = frame:GetParent()
+    end
+end
+
 local function ManageWindow(frame, kind)
     if not enabled or windows[frame] then return end
     local entry = { kind = kind }
@@ -69,7 +90,7 @@ local function ManageWindow(frame, kind)
             return
         end
         entry.dragging = true
-        frame:Raise()
+        RaiseWindow(frame, entry)
         frame:StartMoving()
     end)
     title:SetScript("OnDragStop", function()
@@ -78,7 +99,7 @@ local function ManageWindow(frame, kind)
     frame:HookScript("OnShow", function()
         if InCombatLockdown() then return end
         RestorePosition(frame, entry)
-        frame:Raise()
+        RaiseWindow(frame, entry)
     end)
 end
 
@@ -88,6 +109,10 @@ end
 
 local function FindNativeWindows()
     if InCombatLockdown() then return end
+    if ContainerFrameContainer then
+        -- Native bags flatten into this parent's render layer, not their own strata.
+        ContainerFrameContainer:SetFrameStrata("HIGH")
+    end
     for _, name in ipairs(nativePanels) do
         local frame = _G[name]
         if frame then ManageWindow(frame, "panel") end
@@ -102,7 +127,7 @@ end
 
 function addon.ResetWindowPositions()
     if InCombatLockdown() then
-        print("wow-addon: Cannot reset windows in combat. Try /jj resetwindows after combat")
+        print("wow-addon: Cannot reset windows in combat. Try /jj rw after combat")
         return
     end
     if not enabled then
@@ -136,7 +161,12 @@ addon.RegisterFeature("movableWindows", "Movable windows", function(value)
     events:RegisterEvent("ADDON_LOADED")
     events:RegisterEvent("PLAYER_LOGIN")
     events:RegisterEvent("PLAYER_REGEN_ENABLED")
+    events:RegisterEvent("GLOBAL_MOUSE_DOWN")
     events:SetScript("OnEvent", function(_, event)
+        if event == "GLOBAL_MOUSE_DOWN" then
+            RaiseFocusedBag()
+            return
+        end
         if event == "PLAYER_REGEN_ENABLED" then
             for frame, entry in pairs(windows) do
                 StopDragging(frame, entry)
