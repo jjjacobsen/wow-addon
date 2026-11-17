@@ -6,7 +6,7 @@ local nativePanels = {
     "AuctionHouseFrame", "CharacterFrame", "PlayerSpellsFrame", "ProfessionsFrame",
     "ProfessionsBookFrame", "BankFrame", "MerchantFrame", "TradeFrame", "MailFrame",
     "QuestFrame", "GossipFrame", "DressUpFrame", "FriendsFrame", "SocialUIFrame", "LFGParentFrame",
-    "ClassTrainerFrame", "WorldMapFrame",
+    "ClassTrainerFrame", "WorldMapFrame", "LegacySystemFrame", "CommunitiesFrame",
 }
 
 local function PositionKey(frame, kind)
@@ -68,13 +68,9 @@ local function ManageWindow(frame, kind)
     if not enabled or windows[frame] then return end
     local entry = { kind = kind }
     windows[frame] = entry
-    frame:SetFrameStrata("HIGH")
-    if frame == ProfessionsFrame then
-        -- The native HIGH bar was above a MEDIUM page with its own level of 100.
-        -- With both now HIGH, keep the bar above that page's background.
-        local page = frame.CraftingPage
-        page.RankBar:SetFrameLevel(page:GetFrameLevel() + 1)
-    end
+    -- Native content uses explicit HIGH strata above inherited MEDIUM backgrounds.
+    -- Keep that separation and raise whole top-level windows within one strata.
+    frame:SetFrameStrata("MEDIUM")
     frame:SetToplevel(true)
     frame:EnableMouse(true)
     frame:SetMovable(true)
@@ -110,7 +106,7 @@ local function ManageWindow(frame, kind)
     frame:HookScript("OnShow", function()
         if InCombatLockdown() then return end
         -- The map's native OnShow can set its strata from a game rule.
-        if kind == "map" then frame:SetFrameStrata("HIGH") end
+        if kind == "map" then frame:SetFrameStrata("MEDIUM") end
         RestorePosition(frame, entry)
         RaiseWindow(frame, entry)
     end)
@@ -131,7 +127,7 @@ local function FindNativeWindows()
     if InCombatLockdown() then return end
     if ContainerFrameContainer then
         -- Native bags flatten into this parent's render layer, not their own strata.
-        ContainerFrameContainer:SetFrameStrata("HIGH")
+        ContainerFrameContainer:SetFrameStrata("MEDIUM")
     end
     for _, name in ipairs(nativePanels) do
         local frame = _G[name]
