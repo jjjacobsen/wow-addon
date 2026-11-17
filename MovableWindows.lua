@@ -6,6 +6,7 @@ local nativePanels = {
     "AuctionHouseFrame", "CharacterFrame", "PlayerSpellsFrame", "ProfessionsFrame",
     "ProfessionsBookFrame", "BankFrame", "MerchantFrame", "TradeFrame", "MailFrame",
     "QuestFrame", "GossipFrame", "DressUpFrame", "FriendsFrame",
+    "ClassTrainerFrame", "WorldMapFrame",
 }
 
 local function PositionKey(frame, kind)
@@ -17,6 +18,7 @@ local function PositionKey(frame, kind)
 end
 
 local function RestorePosition(frame, entry)
+    if entry.kind == "map" and frame:IsMaximized() then return end
     local point = positions[PositionKey(frame, entry.kind)]
     if point and not entry.dragging then
         frame:ClearAllPoints()
@@ -67,6 +69,12 @@ local function ManageWindow(frame, kind)
     local entry = { kind = kind }
     windows[frame] = entry
     frame:SetFrameStrata("HIGH")
+    if frame == ProfessionsFrame then
+        -- The native HIGH bar was above a MEDIUM page with its own level of 100.
+        -- With both now HIGH, keep the bar above that page's background.
+        local page = frame.CraftingPage
+        page.RankBar:SetFrameLevel(page:GetFrameLevel() + 1)
+    end
     frame:SetToplevel(true)
     frame:EnableMouse(true)
     frame:SetMovable(true)
@@ -89,6 +97,7 @@ local function ManageWindow(frame, kind)
             print("wow-addon: Cannot move windows in combat")
             return
         end
+        if kind == "map" and frame:IsMaximized() then return end
         entry.dragging = true
         RaiseWindow(frame, entry)
         frame:StartMoving()
@@ -98,9 +107,18 @@ local function ManageWindow(frame, kind)
     end)
     frame:HookScript("OnShow", function()
         if InCombatLockdown() then return end
+        -- The map's native OnShow can set its strata from a game rule.
+        if kind == "map" then frame:SetFrameStrata("HIGH") end
         RestorePosition(frame, entry)
         RaiseWindow(frame, entry)
     end)
+    if kind == "map" then
+        -- Native minimize/maximize anchoring runs after panel layout.
+        hooksecurefunc(frame, "SynchronizeDisplayState", function()
+            if InCombatLockdown() then return end
+            RestorePosition(frame, entry)
+        end)
+    end
 end
 
 function addon.ManageWindow(frame)
@@ -115,7 +133,7 @@ local function FindNativeWindows()
     end
     for _, name in ipairs(nativePanels) do
         local frame = _G[name]
-        if frame then ManageWindow(frame, "panel") end
+        if frame then ManageWindow(frame, frame == WorldMapFrame and "map" or "panel") end
     end
     if ContainerFrameCombinedBags then
         ManageWindow(ContainerFrameCombinedBags, "bag")
@@ -145,6 +163,8 @@ function addon.ResetWindowPositions()
         if entry.kind == "addon" then
             frame:ClearAllPoints()
             frame:SetPoint("CENTER", UIParent, "CENTER")
+        elseif entry.kind == "map" and frame:IsShown() then
+            frame:SynchronizeDisplayState()
         end
     end
     -- Keep native panel occupancy, Escape handling, and layout attributes intact.
