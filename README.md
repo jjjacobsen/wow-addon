@@ -162,6 +162,12 @@ Carried bags are read only when opening details or changing Crafts, Materials, o
 
 Leatherworking gear starts enabled and controls all three tabs. Toggle it in `/jj`, then click Reload. Close the browser with its top-right close button or Escape
 
+## Craft records
+
+In any of the five profession profit views, open a recipe, set Crafts, then click Record craft. This saves an estimated batch, not actual crafting or spending. Craft records in the footer opens this character's records for that profession, newest first. Each click saves a separate batch
+Craft cost / unit includes all materials, even those already owned, using the selected material mode, static vendor prices first, then the selected latest-lowest or 14-day-median AH prices. Farm mode records use raw purchase prices, never free farmed materials. Full-batch intermediary rounding is included. Missing costs or output quantities disable recording
+Qty is the remaining output. Click the minus button to remove one item. Removing the last item deletes that record. Hover a row for craft count, yield, full date, and saved price basis. Saved dates and costs do not change after scans or recipe capture. AH lowest / unit always uses the latest saved scan, regardless of the selected price basis. Margin / unit is that price minus saved unit cost, before AH fees. Current prices update only when you open or return to Craft records, not after scans
+
 ## Cooking profit
 
 Restart WoW after installing the new files. Left-click the Cooking minimap icon or use `/jj cook` to toggle the separate Cooking window

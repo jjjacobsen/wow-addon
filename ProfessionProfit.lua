@@ -241,13 +241,15 @@ function addon.AttachProfessionProfit(profession)
         return rows, hidden, unavailable, gear
     end
 
-    function profession.DetailBasket(recipeID, crafts, bags)
+    function profession.DetailBasket(recipeID, crafts, mode, bags)
         Inputs()
-        local recipe = catalog.recipes[recipeID]
+        local recipe = catalog and catalog.recipes[recipeID]
+        if not recipe then
+            return { recipeID = recipeID, crafts = crafts, lines = {}, issues = { "Recipe unavailable" }, valid = false }
+        end
         local basket = { recipe = recipe, recipeID = recipeID, link = OutputLink(recipe), crafts = crafts,
             quantity = recipe.quantity and recipe.quantity * crafts, lines = {}, issues = {}, valid = true }
         local producers, lines, remaining, surplus, path = Producers(), {}, {}, {}, {}
-        local mode = character.gold.materials
         local expanded = mode == "raw" or mode == "farm"
         for key, quantity in pairs(bags) do remaining[key] = quantity end
         local function Problem(message)
@@ -274,7 +276,8 @@ function addon.AttachProfessionProfit(profession)
             surplus[key] = (surplus[key] or 0) - made
             quantity = quantity - made
             if quantity == 0 then return end
-            if expanded and FarmRaw(itemID) then
+            if expanded and profession.farmRaw and profession.farmRaw[itemID]
+                and (mode == "raw" or FarmRaw(itemID)) then
                 line.need = line.need + quantity
                 line.farm = mode == "farm"
                 line.source = line.farm and "Farm" or "AH"

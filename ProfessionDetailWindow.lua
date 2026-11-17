@@ -74,7 +74,28 @@ function addon.CreateProfessionDetailView(profession, view)
         return row
     end
     local function Recalculate()
-        local basket = profession.DetailBasket(detail.entry.recipeID, detail.count, Bags())
+        local gold = Settings()
+        local basket = profession.DetailBasket(detail.entry.recipeID, detail.count, gold.materials, Bags())
+        local mode = gold.materials == "farm" and "raw" or gold.materials
+        local full = profession.DetailBasket(detail.entry.recipeID, detail.count, mode, {})
+        local fullCost = 0
+        local recordable = full.valid and full.recipe and not full.recipe.nonItem and full.link
+            and full.quantity and full.quantity > 0 and full.recipe.quantity > 0
+            and full.recipe.quantity == math.floor(full.recipe.quantity)
+        for _, line in ipairs(full.lines) do
+            if line.need > 0 then
+                if line.unitPrice == nil then recordable = false
+                else fullCost = fullCost + line.need * line.unitPrice end
+            end
+        end
+        detail.recordDraft = recordable and {
+            recipeID = full.recipeID, itemID = full.recipe.itemID, link = full.link,
+            name = full.link:match("|h%[(.-)%]|h") or detail.entry.name,
+            crafts = detail.count, yield = full.recipe.quantity, quantity = full.quantity,
+            totalCost = fullCost, unitCost = fullCost / full.quantity,
+            materials = mode, selectedMaterials = gold.materials, prices = gold.prices,
+        } or nil
+        detail.record:SetEnabled(detail.recordDraft ~= nil)
         detail.modeSelect:Update()
         detail.priceSelect:Update()
         if not detail.crafts:HasFocus() then detail.crafts:SetText(detail.count) end
@@ -123,7 +144,28 @@ function addon.CreateProfessionDetailView(profession, view)
         view.page:Show()
         profession.UpdateGoldView(view)
     end)
-    detail.title = Text(detail, 108, -35, 648, "GameFontNormalLarge")
+    detail.title = Text(detail, 108, -35, 524, "GameFontNormalLarge")
+    detail.record = Button(detail, 642, -34, 118, "Record craft", function()
+        detail.crafts:ClearFocus()
+        local record = detail.recordDraft
+        if not record then return end
+        record.recordedAt = GetServerTime()
+        local gold = Settings()
+        gold.craftRecords = gold.craftRecords or {}
+        table.insert(gold.craftRecords, record)
+        view.OpenRecords()
+    end)
+    detail.record:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Record craft")
+        GameTooltip:AddLine("Saves estimated cost for all materials, including those already in your bags; does not craft items", 1, 1, 1, true)
+        if Settings().materials == "farm" then
+            GameTooltip:AddLine("Farm mode: record uses raw purchase prices for all materials", 1, 0.82, 0, true)
+        end
+        GameTooltip:Show()
+    end)
+    detail.record:SetScript("OnLeave", GameTooltip_Hide)
+    detail.record:SetScript("OnHide", function(self) if GameTooltip:GetOwner() == self then GameTooltip:Hide() end end)
     Button(detail, 768, -34, 110, "Hide recipe", function()
         local gold = Settings()
         gold.hiddenRecipes = gold.hiddenRecipes or {}
@@ -208,6 +250,7 @@ function addon.CreateProfessionDetailView(profession, view)
         detail.entry, detail.count = entry, 1
         view.page:Hide()
         view.hidden:Hide()
+        view.records:Hide()
         detail:Show()
         detail.scroll:SetVerticalScroll(0)
         Recalculate()

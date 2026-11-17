@@ -120,7 +120,7 @@ function addon.AttachProfessionProfitWindow(profession)
     end
 
     function profession.UpdateGoldScanStatus(view)
-        if view.detail:IsShown() or view.hidden:IsShown() then return end
+        if view.detail:IsShown() or view.hidden:IsShown() or view.records:IsShown() then return end
         if not _G[profession.catalogName] then
             view.message:SetText(profession.IsRefreshing() and ("Scanning recipes, keep your own " .. profession.name .. " open")
                 or ("Open your own " .. profession.name .. " and use " .. profession.scanCommand))
@@ -178,7 +178,9 @@ function addon.AttachProfessionProfitWindow(profession)
     end
 
     function profession.UpdateGoldView(view)
-        if not view:IsShown() or view.detail:IsShown() or view.hidden:IsShown() then return end
+        if not view:IsShown() then return end
+        if view.records:IsShown() then view.RefreshRecords() return end
+        if view.detail:IsShown() or view.hidden:IsShown() then return end
         view.materials:Update()
         view.prices:Update()
         if not view.skill:HasFocus() then view.skill:SetText(profession.GoldMaxSkill() or "") end
@@ -312,7 +314,12 @@ function addon.AttachProfessionProfitWindow(profession)
         view.divider:Hide()
         view.rows = {}
         view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
-        view.scan = Text(view.page, 16, -519, 742)
+        view.scan = Text(view.page, 16, -519, 618)
+        local recordsButton = CreateFrame("Button", nil, view.page, "UIPanelButtonTemplate")
+        recordsButton:SetPoint("BOTTOMRIGHT", -140, 8)
+        recordsButton:SetSize(116, 24)
+        recordsButton:SetText("Craft records")
+        recordsButton:SetScript("OnClick", function() view.OpenRecords() end)
         local hiddenButton = CreateFrame("Button", nil, view.page, "UIPanelButtonTemplate")
         hiddenButton:SetPoint("BOTTOMRIGHT", -16, 8)
         hiddenButton:SetSize(116, 24)
@@ -321,5 +328,6 @@ function addon.AttachProfessionProfitWindow(profession)
         view.search:HookScript("OnTextChanged", function() profession.UpdateWindow() end)
         addon.CreateProfessionDetailView(profession, view)
         addon.CreateProfessionHiddenView(profession, view)
+        addon.CreateProfessionCraftRecordsView(profession, view)
     end
 end
