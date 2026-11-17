@@ -5,7 +5,7 @@ local events = CreateFrame("Frame")
 local nativePanels = {
     "AuctionHouseFrame", "CharacterFrame", "PlayerSpellsFrame", "ProfessionsFrame",
     "ProfessionsBookFrame", "BankFrame", "MerchantFrame", "TradeFrame", "MailFrame",
-    "QuestFrame", "GossipFrame", "DressUpFrame", "FriendsFrame",
+    "QuestFrame", "GossipFrame", "DressUpFrame", "FriendsFrame", "SocialUIFrame", "LFGParentFrame",
     "ClassTrainerFrame", "WorldMapFrame",
 }
 
@@ -85,11 +85,13 @@ local function ManageWindow(frame, kind)
         frame:RegisterForDrag()
     end
 
-    local title = CreateFrame("Frame", nil, frame)
-    title:SetPoint("TOPLEFT", kind == "addon" and 8 or 60, -2)
-    title:SetPoint("TOPRIGHT", kind == "addon" and -34 or -78, -2)
+    -- Native portrait titles sit above the root's border at level 510.
+    local titleParent = frame.TitleContainer or frame
+    local title = CreateFrame("Frame", nil, titleParent)
+    title:SetPoint("TOPLEFT", frame, "TOPLEFT", kind == "addon" and 8 or 60, -2)
+    title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", kind == "addon" and -34 or -78, -2)
     title:SetHeight(24)
-    title:SetFrameLevel(frame:GetFrameLevel() + 10)
+    title:SetFrameLevel(titleParent:GetFrameLevel() + 10)
     title:EnableMouse(true)
     title:RegisterForDrag("LeftButton")
     title:SetScript("OnDragStart", function()
