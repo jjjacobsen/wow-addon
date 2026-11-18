@@ -130,6 +130,13 @@ For each identified empty crate, the tooltip shows the cheapest complete materia
 Favor shows the reported base turn-in reward, without the separate first Shipping Label reward or the Legacy double-reward chance. Artisan white/green rewards are 20/40, based on the Waylaid Auction Helper author's in-game observations. Elite and blue crate rewards show Unconfirmed. Unidentified crates must have their label read first. The static whitelist covers 30 material requests, 15 sealed crates, and the unidentified crate
 Favor / gold divides base Favor by the crate's latest AH unit price plus its cheapest fill cost, in gold. Higher is better. Missing crate prices, fill prices, or rewards show Unavailable. With missing alternatives, the ratio is marked known fill. Sealed crates have no fill cost but still need a saved purchase price
 
+## Craftsman's writ tooltips
+
+Starts enabled. Toggle Craftsman's writ tooltips in `/jj`, then click Reload
+For each of the 150 identified Forever writs, total cost adds one writ's exact displayed-variant AH price to the full requested item quantities from the latest saved scan. Owned items and coin rewards do not reduce the cost. Saved prices work with Auction house prices off
+Base reputation is 75 for Journeyman, 125 for Expert, or 200 for Artisan, with Azeroth Commerce Authority for Alliance or Durotar Supply and Logistics for Horde. Racial and other bonuses are excluded. Base rep / gold divides that reward by total cost in gold, to two decimals. Higher is better
+Missing prices or rewards show Unavailable. Green Lens, Wild Leather Helmet, and Wild Leather Shoulders costs remain unavailable because their random enchantments have no verified exact variant to price. Sealed envelopes have no known order and are excluded
+
 ## Leatherworking
 
 Right-click any Leatherworking, Cooking, First Aid, Engineering, or Tailoring minimap icon to open your own native profession window and scan when recipes are ready. This does not open the addon browser or refresh profit rows

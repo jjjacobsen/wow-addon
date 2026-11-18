@@ -40,6 +40,8 @@ FreeSlot.lua
 AuctionHousePrices.lua
 WaylaidCratesData.lua
 WaylaidCrates.lua
+CraftsmanWritsData.lua
+CraftsmanWrits.lua
 AutoAcceptSellJunkConfirmation.lua
 FilterCommonErrors.lua
 FilterTradeChat.lua
