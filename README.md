@@ -123,6 +123,13 @@ Owned stacks also show AH totals for that stack. Native recipe outputs show tota
 Prices are account-wide in `JJAuctionPrices`, separate from `JJSettings`, and grouped by region, independent PvP/RP/Hardcore rules, and faction, not realm
 `/jj clear` asks for confirmation, then clears only the current market's prices and history and cancels its active scan. It keeps settings, other markets, and the scan cooldown
 
+## Waylaid crate tooltips
+
+The Waylaid crate tooltips feature starts enabled. Toggle it in `/jj`, then click Reload
+For each identified empty crate, the tooltip shows the cheapest complete material option from the latest saved AH scan, with its quantity and cost for one crate. Options are alternatives, not added together. Missing prices show Unavailable. If some options lack prices, the result is marked Lowest known fill. Saved prices work even with Auction house prices off
+Favor shows the reported base turn-in reward, without the separate first Shipping Label reward or the Legacy double-reward chance. Artisan white/green rewards are 20/40, based on the Waylaid Auction Helper author's in-game observations. Elite and blue crate rewards show Unconfirmed. Unidentified crates must have their label read first. The static whitelist covers 30 material requests, 15 sealed crates, and the unidentified crate
+Favor / gold divides base Favor by the crate's latest AH unit price plus its cheapest fill cost, in gold. Higher is better. Missing crate prices, fill prices, or rewards show Unavailable. With missing alternatives, the ratio is marked known fill. Sealed crates have no fill cost but still need a saved purchase price
+
 ## Leatherworking
 
 Right-click any Leatherworking, Cooking, First Aid, Engineering, or Tailoring minimap icon to open your own native profession window and scan when recipes are ready. This does not open the addon browser or refresh profit rows
