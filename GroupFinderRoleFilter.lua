@@ -9,6 +9,13 @@ addon.RegisterFeature("groupFinderRoleFilter", "Group finder role filter", funct
         local browse = LFGBrowseFrame
         local role = "all"
         local hideGroups = false
+        local filteringSuspended = false
+
+        local function UpdateResults()
+            if not C_ChatInfo.InChatMessagingLockdown() then
+                browse:UpdateResults()
+            end
+        end
 
         local function HideResult(resultID)
             local info = C_LFGList.GetSearchResultInfo(resultID)
@@ -29,7 +36,8 @@ addon.RegisterFeature("groupFinderRoleFilter", "Group finder role filter", funct
         end
 
         local function FilterResults()
-            if role == "all" and not hideGroups then
+            -- Both search-info APIs return secret fields during chat lockdown
+            if filteringSuspended or C_ChatInfo.InChatMessagingLockdown() or (role == "all" and not hideGroups) then
                 return
             end
             local provider = browse.ScrollBox:GetDataProvider()
@@ -62,8 +70,19 @@ addon.RegisterFeature("groupFinderRoleFilter", "Group finder role filter", funct
         hooksecurefunc(browse, "UpdateResults", FilterResults)
 
         browse:RegisterEvent("LFG_LIST_SEARCH_RESULT_UPDATED")
-        browse:HookScript("OnEvent", function(self, event, resultID)
-            if event ~= "LFG_LIST_SEARCH_RESULT_UPDATED" or (role == "all" and not hideGroups) or not self:IsShown() then
+        browse:RegisterEvent("ADDON_RESTRICTION_STATE_CHANGED")
+        browse:HookScript("OnEvent", function(self, event, resultID, state)
+            if event == "ADDON_RESTRICTION_STATE_CHANGED" then
+                if resultID == Enum.AddOnRestrictionType.Chat then
+                    filteringSuspended = state ~= Enum.AddOnRestrictionState.Inactive
+                    -- This event runs before activation or after deactivation
+                    if self:IsShown() and (role ~= "all" or hideGroups) then
+                        UpdateResults()
+                    end
+                end
+                return
+            end
+            if event ~= "LFG_LIST_SEARCH_RESULT_UPDATED" or filteringSuspended or C_ChatInfo.InChatMessagingLockdown() or (role == "all" and not hideGroups) or not self:IsShown() then
                 return
             end
             local provider = self.ScrollBox:GetDataProvider()
@@ -90,12 +109,12 @@ addon.RegisterFeature("groupFinderRoleFilter", "Group finder role filter", funct
                 root:CreateRadio(choice[1], function() return role == choice[2] end, function()
                     role = choice[2]
                     -- UpdateResults renders cached IDs without starting a search
-                    browse:UpdateResults()
+                    UpdateResults()
                 end)
             end
             root:CreateCheckbox("Hide groups", function() return hideGroups end, function()
                 hideGroups = not hideGroups
-                browse:UpdateResults()
+                UpdateResults()
             end)
         end)
     end)
