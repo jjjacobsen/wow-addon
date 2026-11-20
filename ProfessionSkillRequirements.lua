@@ -259,6 +259,7 @@ addon.ProfessionSkillRequirements = {
         [23703] = 265, -- item 19326
         [23704] = 295, -- item 19327
         [23705] = 265, -- item 19328
+        [23706] = 300, -- user-confirmed Golden Mantle of the Dawn
         [23707] = 300, -- item 19330
         [23708] = 300, -- item 19331
         [23709] = 300, -- item 19332
