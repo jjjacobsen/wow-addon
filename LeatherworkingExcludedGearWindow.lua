@@ -15,9 +15,9 @@ function lw.CreateExcludedGearView(window, onBack)
     excluded:SetAllPoints()
     excluded:Hide()
     excluded.rows = {}
-    local function MakeRow(index)
+    local entries = {}
+    local function MakeRow()
         local row = CreateFrame("Button", nil, excluded.content)
-        row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT)
         row:SetSize(830, ROW_HEIGHT)
         row.item = Text(row, 0, -5, 738)
         row:SetScript("OnEnter", function(self)
@@ -43,8 +43,34 @@ function lw.CreateExcludedGearView(window, onBack)
         end)
         return row
     end
+    local function RenderRows()
+        local offset = math.floor(excluded.scroll:GetVerticalScroll() / ROW_HEIGHT)
+        local count = excluded.scroll:IsVisible() and math.min(#entries - offset,
+            math.ceil(excluded.scroll:GetHeight() / ROW_HEIGHT) + 1) or 0
+        for index = 1, count do
+            local entry = entries[offset + index]
+            local row = excluded.rows[index]
+            if not row then row = MakeRow() excluded.rows[index] = row end
+            row:SetPoint("TOPLEFT", 0, -(offset + index - 1) * ROW_HEIGHT)
+            row.entry = entry
+            row.item:SetText(entry.link or entry.name)
+            row:Show()
+            if GameTooltip:GetOwner() == row then
+                if row:IsMouseOver() and entry.link then
+                    row:GetScript("OnEnter")(row)
+                else
+                    GameTooltip:Hide()
+                end
+            end
+        end
+        for index = math.max(1, count + 1), #excluded.rows do
+            local row = excluded.rows[index]
+            row:Hide()
+            row.entry = nil
+        end
+    end
     function excluded:UpdateRows()
-        local entries = {}
+        entries = {}
         for itemID in pairs(JJLWCharacter.excludedGear) do
             local item = JJLWCatalog and JJLWCatalog.items[itemID]
             local link = item and item.link
@@ -56,17 +82,11 @@ function lw.CreateExcludedGearView(window, onBack)
             if left == right then return a.itemID < b.itemID end
             return left < right
         end)
-        for index, entry in ipairs(entries) do
-            local row = excluded.rows[index]
-            if not row then row = MakeRow(index) excluded.rows[index] = row end
-            row.entry = entry
-            row.item:SetText(entry.link or entry.name)
-            row:Show()
-        end
-        for index = #entries + 1, #excluded.rows do excluded.rows[index]:Hide() end
         excluded.message:SetText(#entries == 0 and "No excluded gear" or "")
         excluded.content:SetHeight(math.max(1, #entries * ROW_HEIGHT))
-        excluded.scroll:SetVerticalScroll(math.min(excluded.scroll:GetVerticalScroll(), excluded.scroll:GetVerticalScrollRange()))
+        excluded.scroll:SetVerticalScroll(math.min(excluded.scroll:GetVerticalScroll(),
+            math.max(0, excluded.content:GetHeight() - excluded.scroll:GetHeight())))
+        RenderRows()
     end
     local back = CreateFrame("Button", nil, excluded, "UIPanelButtonTemplate")
     back:SetPoint("TOPLEFT", 16, -34)
@@ -86,5 +106,9 @@ function lw.CreateExcludedGearView(window, onBack)
     excluded.content:SetWidth(830)
     excluded.scroll:SetScrollChild(excluded.content)
     excluded.message = Text(excluded.scroll, 0, -10, 830)
+    excluded.scroll:HookScript("OnVerticalScroll", RenderRows)
+    excluded.scroll:HookScript("OnSizeChanged", RenderRows)
+    excluded.scroll:HookScript("OnShow", RenderRows)
+    excluded.scroll:HookScript("OnHide", RenderRows)
     return excluded
 end

@@ -127,6 +127,63 @@ function addon.AttachProfessionProfitWindow(profession)
         end
     end
 
+    local function RenderRows(view, force)
+        if not view.displayEntries then return end
+        local offset = view.scroll:GetVerticalScroll()
+        if view.divided and offset >= view.favoriteCount * ROW_HEIGHT then
+            offset = math.max(view.favoriteCount * ROW_HEIGHT, offset - FAVORITE_GAP)
+        end
+        -- One row above, plus the partial bottom row and a small buffer below.
+        local first = math.max(1, math.floor(offset / ROW_HEIGHT))
+        local count = math.ceil(view.scroll:GetHeight() / ROW_HEIGHT) + 3
+        local last = math.min(#view.displayEntries, first + count - 1)
+        local used = 0
+        for index = first, last do
+            used = used + 1
+            local entry = view.displayEntries[index]
+            local row = view.rows[used]
+            if not row then
+                row = MakeRow(view)
+                view.rows[used] = row
+            end
+            local changed = force or row.entry ~= entry or row.index ~= index
+            if changed then
+                local owner = GameTooltip:GetOwner()
+                if owner == row or owner == row.favorite then GameTooltip:Hide() end
+                row:ClearAllPoints()
+                row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT
+                    - (view.divided and index > view.favoriteCount and FAVORITE_GAP or 0))
+                row.entry, row.index = entry, index
+                -- Forever 70938 AuctionHouseFavoriteButtonBaseMixin uses these atlases and highlight alphas.
+                local favorite = IsFavorite(entry.recipeID)
+                local atlas = favorite and "auctionhouse-icon-favorite" or "auctionhouse-icon-favorite-off"
+                row.favorite:GetNormalTexture():SetAtlas(atlas)
+                row.favorite:GetHighlightTexture():SetAtlas(atlas)
+                row.favorite:GetHighlightTexture():SetAlpha(favorite and 0.2 or 0.4)
+                row.item:SetText(entry.name)
+                row.recipe:SetText("#" .. entry.recipeID .. (entry.needsRecipe and " | Unlearned/unknown recipe required" or " | Learned"))
+                row.skill:SetText(entry.requiredSkill or "-")
+                row.quantity:SetText(entry.recipe.quantity or "-")
+                row.supply:SetText(entry.supply or "-")
+                row.cost:SetText(Money(entry.cash))
+                row.sale:SetText(Money(entry.sale))
+                row.margin:SetText(Money(entry.margin))
+                row.margin:SetTextColor(entry.margin and entry.margin > 0 and 0.2 or 1,
+                    entry.margin and entry.margin < 0 and 0.2 or 1, entry.margin and entry.margin ~= 0 and 0.2 or 1)
+            end
+            row:Show()
+            if changed and row:IsShown() then
+                if row.favorite:IsMouseOver() then FavoriteTooltip(row.favorite)
+                elseif row:IsMouseOver() then Tooltip(row) end
+            end
+        end
+        for index = used + 1, #view.rows do
+            local row = view.rows[index]
+            row:Hide()
+            row.entry, row.index = nil, nil
+        end
+    end
+
     UpdateRows = function(view)
         local rows, others = {}, {}
         for _, entry in ipairs(view.entries) do
@@ -135,59 +192,24 @@ function addon.AttachProfessionProfitWindow(profession)
         local favoriteCount = #rows
         for _, entry in ipairs(others) do table.insert(rows, entry) end
         local divided = favoriteCount > 0 and #others > 0
+        view.displayEntries, view.favoriteCount, view.divided = rows, favoriteCount, divided
         view.divider:Hide()
         view.divider:ClearAllPoints()
         if divided then
             view.divider:SetPoint("TOPLEFT", 0, -favoriteCount * ROW_HEIGHT - FAVORITE_GAP / 2)
             view.divider:Show()
         end
-        for index, entry in ipairs(rows) do
-            local row = view.rows[index]
-            if not row then
-                row = MakeRow(view)
-                view.rows[index] = row
-            end
-            row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT
-                - (divided and index > favoriteCount and FAVORITE_GAP or 0))
-            row.entry = entry
-            -- Forever 70938 AuctionHouseFavoriteButtonBaseMixin uses these atlases and highlight alphas.
-            local favorite = IsFavorite(entry.recipeID)
-            local atlas = favorite and "auctionhouse-icon-favorite" or "auctionhouse-icon-favorite-off"
-            row.favorite:GetNormalTexture():SetAtlas(atlas)
-            row.favorite:GetHighlightTexture():SetAtlas(atlas)
-            row.favorite:GetHighlightTexture():SetAlpha(favorite and 0.2 or 0.4)
-            row.item:SetText(entry.name)
-            row.recipe:SetText("#" .. entry.recipeID .. (entry.needsRecipe and " | Unlearned/unknown recipe required" or " | Learned"))
-            row.skill:SetText(entry.requiredSkill or "-")
-            row.quantity:SetText(entry.recipe.quantity or "-")
-            row.supply:SetText(entry.supply or "-")
-            row.cost:SetText(Money(entry.cash))
-            row.sale:SetText(Money(entry.sale))
-            row.margin:SetText(Money(entry.margin))
-            row.margin:SetTextColor(entry.margin and entry.margin > 0 and 0.2 or 1,
-                entry.margin and entry.margin < 0 and 0.2 or 1, entry.margin and entry.margin ~= 0 and 0.2 or 1)
-            row:Show()
-            if row.favorite:IsMouseOver() then FavoriteTooltip(row.favorite)
-            elseif row:IsMouseOver() then Tooltip(row) end
-        end
-        for index = #rows + 1, #view.rows do view.rows[index]:Hide() end
         view.content:SetHeight(math.max(1, #rows * ROW_HEIGHT + (divided and FAVORITE_GAP or 0)))
         view.scroll:SetVerticalScroll(math.min(view.scroll:GetVerticalScroll(), view.scroll:GetVerticalScrollRange()))
+        RenderRows(view, true)
         view.message:SetText(#rows == 0 and "No matching recipes" or "")
     end
 
-    function profession.UpdateGoldView(view)
-        if not view:IsShown() then return end
-        if view.records:IsShown() then view.RefreshRecords() return end
-        if view.detail:IsShown() or view.hidden:IsShown() then return end
-        view.materials:Update()
-        view.prices:Update()
-        if not view.skill:HasFocus() then view.skill:SetText(profession.GoldMaxSkill() or "") end
+    local function FilterRows(view)
         view.entries = {}
         local query = view.search:GetText():lower()
         local hiddenRecipes = Character().gold.hiddenRecipes or {}
-        for _, entry in ipairs(profession.GoldRows()) do
+        for _, entry in ipairs(view.rawEntries) do
             local name = entry.name:match("|h%[(.-)%]|h") or entry.name
             if not hiddenRecipes[entry.recipeID]
                 and (not addon.emptySkillOnly or entry.requiredSkill == nil)
@@ -198,6 +220,48 @@ function addon.AttachProfessionProfitWindow(profession)
         end
         UpdateRows(view)
         profession.UpdateGoldScanStatus(view)
+    end
+
+    local function GoldInputs()
+        local gold = Character().gold
+        local _, _, _, marketKey = addon.AuctionPrices.Lookup()
+        return {
+            catalog = _G[profession.catalogName],
+            marketKey = marketKey,
+            market = JJAuctionPrices and JJAuctionPrices.markets[marketKey],
+            day = math.floor(GetServerTime() / 86400),
+            materials = gold.materials,
+            prices = gold.prices,
+            includeUnlearned = gold.includeUnlearned,
+            excludeGear = gold.excludeGear,
+            maxSkill = profession.GoldMaxSkill(),
+        }
+    end
+
+    local function SameValues(previous, current)
+        if not previous then return false end
+        for key, value in pairs(current) do
+            if previous[key] ~= value then return false end
+        end
+        for key, value in pairs(previous) do
+            if current[key] ~= value then return false end
+        end
+        return true
+    end
+
+    function profession.UpdateGoldView(view)
+        if not view:IsShown() then return end
+        if view.records:IsShown() then view.RefreshRecords() return end
+        if view.detail:IsShown() or view.hidden:IsShown() then return end
+        view.materials:Update()
+        view.prices:Update()
+        if not view.skill:HasFocus() then view.skill:SetText(profession.GoldMaxSkill() or "") end
+        view.rawEntries = profession.GoldRows()
+        view.goldInputs = GoldInputs()
+        -- NEW_RECIPE_LEARNED also changes learned status in place, without a catalog scan.
+        view.goldLearned = {}
+        for recipeID, learned in pairs(Character().learned) do view.goldLearned[recipeID] = learned end
+        FilterRows(view)
         local _, _, scannedAt, market = addon.AuctionPrices.Lookup()
         local scan = "No AH scan for this market"
         if scannedAt then
@@ -313,6 +377,9 @@ function addon.AttachProfessionProfitWindow(profession)
         view.divider:SetColorTexture(1, 0.82, 0, 0.3)
         view.divider:Hide()
         view.rows = {}
+        view.rawEntries = {}
+        view.scroll:HookScript("OnVerticalScroll", function() RenderRows(view) end)
+        view.scroll:HookScript("OnSizeChanged", function() RenderRows(view) end)
         view.message = Text(view.scroll, 0, -10, 830, "GameFontHighlight")
         view.scan = Text(view.page, 16, -519, 618)
         local recordsButton = CreateFrame("Button", nil, view.page, "UIPanelButtonTemplate")
@@ -325,7 +392,14 @@ function addon.AttachProfessionProfitWindow(profession)
         hiddenButton:SetSize(116, 24)
         hiddenButton:SetText("Hidden recipes")
         hiddenButton:SetScript("OnClick", function() view.OpenHidden() end)
-        view.search:HookScript("OnTextChanged", function() profession.UpdateWindow() end)
+        view.search:HookScript("OnTextChanged", function()
+            if not view.page:IsShown() then return end
+            if SameValues(view.goldInputs, GoldInputs()) and SameValues(view.goldLearned, Character().learned) then
+                FilterRows(view)
+            else
+                profession.UpdateGoldView(view)
+            end
+        end)
         addon.CreateProfessionDetailView(profession, view)
         addon.CreateProfessionHiddenView(profession, view)
         addon.CreateProfessionCraftRecordsView(profession, view)

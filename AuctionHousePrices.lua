@@ -3,6 +3,7 @@ local enabled, auctionOpen, auctionMap, scan, scanButton
 local events = CreateFrame("Frame")
 local scanCooldown = 15 * 60
 local scanTimeout = 300
+local medianCache, medianDay = {}, nil
 local capitals = {
     [1453] = "Alliance", -- Stormwind
     [1455] = "Alliance", -- Ironforge
@@ -86,6 +87,17 @@ local function ItemKey(link)
     return table.concat(fields, ":")
 end
 
+local function AddObservation(days, day, price)
+    local observations = days[day]
+    if not observations then
+        days[day] = price
+    elseif type(observations) == "number" then
+        days[day] = { observations, price }
+    else
+        table.insert(observations, price)
+    end
+end
+
 local function NormalizeMarket(market)
     -- Collect aliases before moving keys so pairs never visits newly added keys.
     local aliases = {}
@@ -107,9 +119,8 @@ local function NormalizeMarket(market)
             table.insert(aliases, key)
         end
         for day, observations in pairs(samples) do
-            -- Keep an older daily price as one observation.
-            if type(observations) == "number" then
-                samples[day] = { observations }
+            if type(observations) == "table" and #observations == 1 then
+                samples[day] = observations[1]
             end
         end
     end
@@ -123,9 +134,11 @@ local function NormalizeMarket(market)
             for day, observations in pairs(samples) do
                 if not days[day] then
                     days[day] = observations
+                elseif type(observations) == "number" then
+                    AddObservation(days, day, observations)
                 else
                     for _, price in ipairs(observations) do
-                        table.insert(days[day], price)
+                        AddObservation(days, day, price)
                     end
                 end
             end
@@ -135,33 +148,52 @@ local function NormalizeMarket(market)
 end
 
 local function Median(prices)
+    if type(prices) == "number" then return prices end
+    if #prices <= 1 then return prices[1] end
     local sorted = {}
     for _, price in ipairs(prices) do
         table.insert(sorted, price)
     end
     table.sort(sorted)
     local count = #sorted
-    if count > 0 then
-        return (sorted[math.floor((count + 1) / 2)] + sorted[math.ceil((count + 1) / 2)]) / 2
-    end
+    return (sorted[math.floor((count + 1) / 2)] + sorted[math.ceil((count + 1) / 2)]) / 2
 end
 
 -- Read-only access to this character's market, including when scanning/tooltips are disabled.
+local function LookupLowest(link)
+    local market = JJAuctionPrices and JJAuctionPrices.markets[MarketKey()]
+    return market and market.lowest[ItemKey(link)]
+end
+
 local function Lookup(link)
     local marketKey = MarketKey()
     local market = JJAuctionPrices and JJAuctionPrices.markets[marketKey]
     local key = ItemKey(link)
     local lowest = market and market.lowest[key]
     local samples = market and market.history[key]
-    local prices, day = {}, Day()
-    if samples then
-        for sampleDay, observations in pairs(samples) do
-            if sampleDay >= day - 13 and sampleDay <= day then
-                table.insert(prices, Median(observations))
-            end
-        end
+    local day = Day()
+    if medianDay ~= day then
+        medianCache, medianDay = {}, day
     end
-    return lowest, Median(prices), market and market.scannedAt, marketKey
+    local median
+    if samples then
+        local cached = medianCache[marketKey]
+        if not cached then
+            cached = {}
+            medianCache[marketKey] = cached
+        end
+        if cached[key] == nil then
+            local prices = {}
+            for sampleDay, observations in pairs(samples) do
+                if sampleDay >= day - 13 and sampleDay <= day then
+                    table.insert(prices, Median(observations))
+                end
+            end
+            cached[key] = Median(prices) or false
+        end
+        median = cached[key] or nil
+    end
+    return lowest, median, market and market.scannedAt, marketKey
 end
 local function Supply(link)
     local market = JJAuctionPrices and JJAuctionPrices.markets[MarketKey()]
@@ -171,7 +203,9 @@ local function Supply(link)
     if supply then return supply.units, supply.listings end
     return 0, 0
 end
-addon.AuctionPrices = { Lookup = Lookup, Supply = Supply, ItemKey = ItemKey, NormalizeLink = NormalizeLink }
+addon.AuctionPrices = {
+    Lookup = Lookup, LookupLowest = LookupLowest, Supply = Supply, ItemKey = ItemKey, NormalizeLink = NormalizeLink,
+}
 
 local function StopScan(message)
     scan = nil
@@ -189,8 +223,7 @@ local function CommitScan()
     Prune(history, day - 13)
     for key, price in pairs(scan.lowest) do
         history[key] = history[key] or {}
-        history[key][day] = history[key][day] or {}
-        table.insert(history[key][day], price)
+        AddObservation(history[key], day, price)
     end
     JJAuctionPrices.markets[scan.marketKey] = {
         lowest = scan.lowest,
@@ -198,6 +231,7 @@ local function CommitScan()
         history = history,
         scannedAt = GetServerTime(),
     }
+    medianCache[scan.marketKey] = nil
     local count = scan.count
     StopScan()
     Say("Scan complete: " .. count .. " auctions")
@@ -345,6 +379,7 @@ StaticPopupDialogs.JJ_CLEAR_AUCTION_PRICES = {
             StopScan()
         end
         JJAuctionPrices.markets[marketKey] = nil
+        medianCache[marketKey] = nil
         Say("Cleared auction prices and history for " .. marketKey)
         addon.Leatherworking.UpdateWindow()
         addon.Cooking.UpdateWindow()
@@ -416,6 +451,7 @@ end
 
 addon.RegisterFeature("auctionHousePrices", "Auction house prices", function(value)
     enabled = value
+    medianCache = {}
     if JJAuctionPrices then
         for _, market in pairs(JJAuctionPrices.markets) do
             NormalizeMarket(market)

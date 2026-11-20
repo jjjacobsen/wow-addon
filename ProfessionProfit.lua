@@ -1,7 +1,7 @@
 local _, addon = ...
 
 function addon.AttachProfessionProfit(profession)
-    local catalog, character
+    local catalog, character, priceCache
     local function Inputs()
         catalog, character = _G[profession.catalogName], _G[profession.characterName]
     end
@@ -27,9 +27,18 @@ function addon.AttachProfessionProfit(profession)
     end
 
     local function Price(link)
-        local lowest, median = addon.AuctionPrices.Lookup(link)
-        if character.gold.prices == "median" then return median end
-        return lowest
+        if not link then return end
+        local price = priceCache[link]
+        if price == nil then
+            if character.gold.prices == "median" then
+                local _, median = addon.AuctionPrices.Lookup(link)
+                price = median
+            else
+                price = addon.AuctionPrices.LookupLowest(link)
+            end
+            priceCache[link] = price or false
+        end
+        return price or nil
     end
 
     local function SaleEligibility(record)
@@ -177,6 +186,7 @@ function addon.AttachProfessionProfit(profession)
 
     function profession.GoldRows()
         Inputs()
+        priceCache = {}
         local rows, hidden, unavailable, gear = {}, 0, 0, 0
         if not catalog then return rows, hidden, unavailable, gear end
         local producers = Producers()
@@ -243,6 +253,7 @@ function addon.AttachProfessionProfit(profession)
 
     function profession.DetailBasket(recipeID, crafts, mode, bags)
         Inputs()
+        priceCache = {}
         local recipe = catalog and catalog.recipes[recipeID]
         if not recipe then
             return { recipeID = recipeID, crafts = crafts, lines = {}, issues = { "Recipe unavailable" }, valid = false }

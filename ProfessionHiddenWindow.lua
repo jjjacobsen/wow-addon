@@ -29,9 +29,9 @@ function addon.CreateProfessionHiddenView(profession, view)
     view.hidden = hidden
     local function Settings() return _G[profession.characterName].gold end
     local UpdateRows
-    local function MakeRow(index)
+    local entries = {}
+    local function MakeRow()
         local row = CreateFrame("Button", nil, hidden.content)
-        row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT)
         row:SetSize(830, ROW_HEIGHT)
         row.item = Text(row, 0, -5, 738)
         row:SetScript("OnEnter", ItemTooltip)
@@ -52,8 +52,30 @@ function addon.CreateProfessionHiddenView(profession, view)
         end)
         return row
     end
+    local function RenderRows()
+        local offset = math.floor(hidden.scroll:GetVerticalScroll() / ROW_HEIGHT)
+        local count = hidden.scroll:IsVisible() and math.min(#entries - offset,
+            math.ceil(hidden.scroll:GetHeight() / ROW_HEIGHT) + 1) or 0
+        for index = 1, count do
+            local entry = entries[offset + index]
+            local row = hidden.rows[index]
+            if not row then row = MakeRow() hidden.rows[index] = row end
+            row:SetPoint("TOPLEFT", 0, -(offset + index - 1) * ROW_HEIGHT)
+            row.entry = entry
+            row.item:SetText(entry.link or entry.name)
+            row:Show()
+            if GameTooltip:GetOwner() == row then
+                if row:IsMouseOver() and entry.link then ItemTooltip(row) else GameTooltip:Hide() end
+            end
+        end
+        for index = math.max(1, count + 1), #hidden.rows do
+            local row = hidden.rows[index]
+            row:Hide()
+            row.entry = nil
+        end
+    end
     UpdateRows = function()
-        local entries = {}
+        entries = {}
         local catalog = _G[profession.catalogName]
         for recipeID in pairs(Settings().hiddenRecipes or {}) do
             local recipe = catalog and catalog.recipes[recipeID]
@@ -69,17 +91,11 @@ function addon.CreateProfessionHiddenView(profession, view)
             if left == right then return a.recipeID < b.recipeID end
             return left < right
         end)
-        for index, entry in ipairs(entries) do
-            local row = hidden.rows[index]
-            if not row then row = MakeRow(index) hidden.rows[index] = row end
-            row.entry = entry
-            row.item:SetText(entry.link or entry.name)
-            row:Show()
-        end
-        for index = #entries + 1, #hidden.rows do hidden.rows[index]:Hide() end
         hidden.message:SetText(#entries == 0 and "No hidden recipes" or "")
         hidden.content:SetHeight(math.max(1, #entries * ROW_HEIGHT))
-        hidden.scroll:SetVerticalScroll(math.min(hidden.scroll:GetVerticalScroll(), hidden.scroll:GetVerticalScrollRange()))
+        hidden.scroll:SetVerticalScroll(math.min(hidden.scroll:GetVerticalScroll(),
+            math.max(0, hidden.content:GetHeight() - hidden.scroll:GetHeight())))
+        RenderRows()
     end
     hidden.back = CreateFrame("Button", nil, hidden, "UIPanelButtonTemplate")
     hidden.back:SetPoint("TOPLEFT", 16, -34)
@@ -103,6 +119,10 @@ function addon.CreateProfessionHiddenView(profession, view)
     hidden.content:SetWidth(830)
     hidden.scroll:SetScrollChild(hidden.content)
     hidden.message = Text(hidden.scroll, 0, -10, 830)
+    hidden.scroll:HookScript("OnVerticalScroll", RenderRows)
+    hidden.scroll:HookScript("OnSizeChanged", RenderRows)
+    hidden.scroll:HookScript("OnShow", RenderRows)
+    hidden.scroll:HookScript("OnHide", RenderRows)
     function view.OpenHidden()
         view.page:Hide()
         view.detail:Hide()

@@ -3,6 +3,7 @@ local lw = addon.Leatherworking
 local window, currentLevel
 local requested = {}
 local ROW_HEIGHT = 26
+local tableEntries = {}
 local UpdateWindow
 
 local function StatValue(stats)
@@ -199,10 +200,9 @@ local function UpdateRecommendations(rows, matching)
     return count
 end
 
-local function MakeRow(index)
+local function MakeRow()
     local row = CreateFrame("Button", nil, window.content)
     row:SetSize(770, ROW_HEIGHT)
-    row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT)
     row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
     row.item = Text(row, 0, -3, 290)
     row.armor = Text(row, 296, -3, 85)
@@ -219,6 +219,39 @@ local function MakeRow(index)
         HandleModifiedItemClick(self.link)
     end)
     return row
+end
+
+local function RenderRows()
+    local offset = math.floor(window.scroll:GetVerticalScroll() / ROW_HEIGHT)
+    local count = window.scroll:IsVisible() and math.min(#tableEntries - offset,
+        math.ceil(window.scroll:GetHeight() / ROW_HEIGHT) + 1) or 0
+    for index = 1, count do
+        local entry = tableEntries[offset + index]
+        local row = window.rows[index]
+        if not row then row = MakeRow() window.rows[index] = row end
+        row:SetPoint("TOPLEFT", 0, -(offset + index - 1) * ROW_HEIGHT)
+        row.link = entry.item.link
+        row.item:SetText(row.link)
+        row.armor:SetText(entry.item.subType)
+        row.level:SetText(entry.item.requiredLevel)
+        row.value:SetText(entry.value == nil and "-" or tostring(entry.value))
+        local delta = entry.delta
+        row.delta:SetText(delta == nil and "-" or (delta > 0 and "+" or "") .. tostring(delta))
+        row.delta:SetTextColor(delta and delta > 0 and 0.2 or 1, delta and delta < 0 and 0.2 or 1, delta and delta ~= 0 and 0.2 or 1)
+        local learned = JJLWCharacter.learned[entry.recipeID]
+        row.learned:SetText(learned == nil and "Unknown" or learned and "Learned" or "Unlearned")
+        row:Show()
+        if row:IsMouseOver() then
+            ShowTooltip(row)
+        elseif GameTooltip:GetOwner() == row then
+            GameTooltip:Hide()
+        end
+    end
+    for index = math.max(1, count + 1), #window.rows do
+        local row = window.rows[index]
+        row:Hide()
+        row.link = nil
+    end
 end
 
 UpdateWindow = function(refreshGold)
@@ -283,28 +316,11 @@ UpdateWindow = function(refreshGold)
         UpdateRecommendations(rows, matching)
         return
     end
-    for index, entry in ipairs(rows) do
-        local row = window.rows[index]
-        if not row then
-            row = MakeRow(index)
-            window.rows[index] = row
-        end
-        row.link = entry.item.link
-        row.item:SetText(row.link)
-        row.armor:SetText(entry.item.subType)
-        row.level:SetText(entry.item.requiredLevel)
-        row.value:SetText(entry.value == nil and "-" or tostring(entry.value))
-        local delta = entry.delta
-        row.delta:SetText(delta == nil and "-" or (delta > 0 and "+" or "") .. tostring(delta))
-        row.delta:SetTextColor(delta and delta > 0 and 0.2 or 1, delta and delta < 0 and 0.2 or 1, delta and delta ~= 0 and 0.2 or 1)
-        local learned = options.learned[entry.recipeID]
-        row.learned:SetText(learned == nil and "Unknown" or learned and "Learned" or "Unlearned")
-        row:Show()
-        if row:IsMouseOver() then ShowTooltip(row) end
-    end
-    for index = #rows + 1, #window.rows do window.rows[index]:Hide() end
+    tableEntries = rows
     window.content:SetHeight(math.max(1, #rows * ROW_HEIGHT))
-    window.scroll:SetVerticalScroll(math.min(window.scroll:GetVerticalScroll(), window.scroll:GetVerticalScrollRange()))
+    window.scroll:SetVerticalScroll(math.min(window.scroll:GetVerticalScroll(),
+        math.max(0, window.content:GetHeight() - window.scroll:GetHeight())))
+    RenderRows()
     window.status:SetText(("%d shown | %d recipes"):format(#rows, recipeCount))
     window.message:SetText(not catalog and (lw.IsRefreshing() and "Scanning recipes, keep your own Leatherworking open"
         or "Open your own Leatherworking and use /jj lwscan")
@@ -428,6 +444,10 @@ local function CreateWindow()
     window.content:SetWidth(770)
     window.scroll:SetScrollChild(window.content)
     window.rows = {}
+    window.scroll:HookScript("OnVerticalScroll", RenderRows)
+    window.scroll:HookScript("OnSizeChanged", RenderRows)
+    window.scroll:HookScript("OnShow", RenderRows)
+    window.scroll:HookScript("OnHide", RenderRows)
     window.message = Text(window.scroll, 0, -10, 760, "GameFontHighlight")
     window.status = Text(panel, 16, -520, 795)
     CreateRecommendations(panel)

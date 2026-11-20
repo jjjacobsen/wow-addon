@@ -36,9 +36,9 @@ function addon.CreateProfessionCraftRecordsView(profession, view)
     records:Hide()
     records.rows = {}
     view.records = records
-    local function MakeRow(index)
+    local entries = {}
+    local function MakeRow()
         local row = CreateFrame("Button", nil, records.content)
-        row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT)
         row:SetSize(830, ROW_HEIGHT)
         row.item = Text(row, 24, -5, 211)
         row.remove = CreateFrame("Button", nil, row)
@@ -77,20 +77,17 @@ function addon.CreateProfessionCraftRecordsView(profession, view)
         row:SetScript("OnClick", function(self) if self.record.link then HandleModifiedItemClick(self.record.link) end end)
         return row
     end
-    function view.RefreshRecords()
-        local entries = {}
-        for index, record in ipairs(_G[profession.characterName].gold.craftRecords or {}) do
-            table.insert(entries, { record = record, index = index })
-        end
-        table.sort(entries, function(a, b)
-            if a.record.recordedAt ~= b.record.recordedAt then return a.record.recordedAt > b.record.recordedAt end
-            return a.index > b.index
-        end)
-        for index, entry in ipairs(entries) do
+    local function RenderRows()
+        local offset = math.floor(records.scroll:GetVerticalScroll() / ROW_HEIGHT)
+        local count = records.scroll:IsVisible() and math.min(#entries - offset,
+            math.ceil(records.scroll:GetHeight() / ROW_HEIGHT) + 1) or 0
+        for index = 1, count do
+            local entry = entries[offset + index]
             local row = records.rows[index]
-            if not row then row = MakeRow(index) records.rows[index] = row end
+            if not row then row = MakeRow() records.rows[index] = row end
+            row:SetPoint("TOPLEFT", 0, -(offset + index - 1) * ROW_HEIGHT)
             local record = entry.record
-            local lowest = addon.AuctionPrices.Lookup(record.link)
+            local lowest = addon.AuctionPrices.LookupLowest(record.link)
             local margin = lowest and lowest - record.unitCost
             row.record, row.recordIndex = record, entry.index
             row.item:SetText(record.link or record.name)
@@ -102,11 +99,30 @@ function addon.CreateProfessionCraftRecordsView(profession, view)
             row.margin:SetTextColor(margin and margin > 0 and 0.2 or 1,
                 margin and margin < 0 and 0.2 or 1, margin and margin ~= 0 and 0.2 or 1)
             row:Show()
+            if GameTooltip:GetOwner() == row then
+                if row:IsMouseOver() then ItemTooltip(row) else GameTooltip:Hide() end
+            end
         end
-        for index = #entries + 1, #records.rows do records.rows[index]:Hide() end
+        for index = math.max(1, count + 1), #records.rows do
+            local row = records.rows[index]
+            row:Hide()
+            row.record, row.recordIndex = nil, nil
+        end
+    end
+    function view.RefreshRecords()
+        entries = {}
+        for index, record in ipairs(_G[profession.characterName].gold.craftRecords or {}) do
+            table.insert(entries, { record = record, index = index })
+        end
+        table.sort(entries, function(a, b)
+            if a.record.recordedAt ~= b.record.recordedAt then return a.record.recordedAt > b.record.recordedAt end
+            return a.index > b.index
+        end)
         records.message:SetText(#entries == 0 and "No craft records" or "")
         records.content:SetHeight(math.max(1, #entries * ROW_HEIGHT))
-        records.scroll:SetVerticalScroll(math.min(records.scroll:GetVerticalScroll(), records.scroll:GetVerticalScrollRange()))
+        records.scroll:SetVerticalScroll(math.min(records.scroll:GetVerticalScroll(),
+            math.max(0, records.content:GetHeight() - records.scroll:GetHeight())))
+        RenderRows()
     end
     local back = CreateFrame("Button", nil, records, "UIPanelButtonTemplate")
     back:SetPoint("TOPLEFT", 16, -34)
@@ -134,6 +150,10 @@ function addon.CreateProfessionCraftRecordsView(profession, view)
     records.content:SetWidth(830)
     records.scroll:SetScrollChild(records.content)
     records.message = Text(records.scroll, 0, -10, 830)
+    records.scroll:HookScript("OnVerticalScroll", RenderRows)
+    records.scroll:HookScript("OnSizeChanged", RenderRows)
+    records.scroll:HookScript("OnShow", RenderRows)
+    records.scroll:HookScript("OnHide", RenderRows)
     Text(records, 16, -519, 862):SetText("Current AH lowest from the saved scan. Margin before AH fees")
     function view.OpenRecords()
         view.page:Hide()
