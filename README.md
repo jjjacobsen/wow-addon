@@ -113,7 +113,7 @@ Enable Auction house prices in `/jj` and reload to use Scan, `/jj scan`, and `/j
 Open an auction house in your faction's capital, then click Scan between the search box and Filter, or use `/jj scan`. Keep it open until the scan completes. Scan is disabled while a scan runs
 Supported capitals are Stormwind, Ironforge, Darnassus, Orgrimmar, Thunder Bluff, and Undercity. Neutral auction houses and all other locations are not supported
 Scans use the full auction list, with a local account-wide 15-minute cooldown. The server's scan cooldown cannot be bypassed, and scans from other addons can cause throttling
-Chat reports elapsed time every 10 seconds, first while waiting for the server list, then with processed auction counts and checked rows waiting for item data. Scans time out after 300 seconds. A missing server response reports possible throttling, while incomplete data reports the remaining rows. A timeout or cancelled scan keeps the previous prices
+Chat reports elapsed time every 10 seconds, first while waiting for the server list, then with processed auction counts and checked rows waiting for item data. Scans time out after 10 minutes. A missing server response reports possible throttling, while incomplete data reports the remaining rows. A timeout or cancelled scan keeps the previous prices
 
 Soulbound and bind-on-pickup items omit AH rows when their binding is available from the item or tooltip
 Item tooltips show the latest scan's lowest buyout per unit and the median of daily medians over 14 UTC days, including today. Each successful scan adds its lowest buyout per unit to that UTC day's observations. Each sampled day has equal weight, and days without observations are excluded. Existing daily prices count as one observation each
