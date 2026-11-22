@@ -2,7 +2,7 @@ local _, addon = ...
 local enabled, auctionOpen, auctionMap, scan, scanButton
 local events = CreateFrame("Frame")
 local scanCooldown = 15 * 60
-local scanTimeout = 600
+local scanTimeout = 14 * 60
 local medianCache, medianDay = {}, nil
 local capitals = {
     [1453] = "Alliance", -- Stormwind
