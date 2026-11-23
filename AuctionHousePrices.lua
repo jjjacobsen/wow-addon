@@ -2,7 +2,7 @@ local _, addon = ...
 local enabled, auctionOpen, auctionMap, scan, scanButton
 local events = CreateFrame("Frame")
 local scanCooldown = 15 * 60
-local scanTimeout = 14 * 60
+local scanTimeout = 20 * 60
 local medianCache, medianDay = {}, nil
 local capitals = {
     [1453] = "Alliance", -- Stormwind
@@ -282,7 +282,7 @@ local function ProcessScan()
                 .. " auctions processed, " .. #scan.pending .. " checked rows still waiting for item data")
         else
             StopScan("Scan timed out after " .. scanTimeout .. " seconds without a server auction list"
-                .. ". The request may be throttled. Wait for the 15-minute scan cooldown before retrying")
+                .. ". The request may be throttled")
         end
         return
     end
