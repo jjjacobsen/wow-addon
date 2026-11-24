@@ -29,6 +29,7 @@ Tailoring.lua
 HideBuffCollapseArrow.lua
 MaximumCameraZoom.lua
 PlayerRareElitePortrait.lua
+ClassPortraits.lua
 TankNameplates.lua
 DamageMeter.lua
 FlightDurations.lua

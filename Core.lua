@@ -51,7 +51,7 @@ end
 local function CreateSettings()
     local window = CreateFrame("Frame", "JJSettingsFrame", UIParent, "BasicFrameTemplate")
     window:Hide()
-    local rows = math.ceil((#features + 2) / 2)
+    local rows = math.ceil((#features + 3) / 2)
     window:SetSize(600, 84 + rows * 32)
     local function PositionCheckbox(checkbox, index)
         local column = math.floor((index - 1) / rows)
@@ -134,6 +134,8 @@ local function CreateSettings()
         UpdateDamageMeter()
     end
     damageMeter:SetScript("OnClick", ToggleDamageMeter)
+
+    PositionCheckbox(addon.CreateClassPortraitsCheckbox(window), #features + 3)
 
     SLASH_JJSETTINGS1 = "/jj"
     SlashCmdList.JJSETTINGS = function(message)
