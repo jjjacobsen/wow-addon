@@ -50,3 +50,4 @@ FilterCommonErrors.lua
 FilterTradeChat.lua
 ChatPlayerLevels.lua
 MuteSpellFailureSounds.lua
+MuteBlacksmithingSounds.lua
