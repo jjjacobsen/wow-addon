@@ -8,6 +8,7 @@
 Core.lua
 MovableWindows.lua
 FiveSecondRule.lua
+CarrotOnAStick.lua
 MinimapButtons.lua
 ProfessionSkillRequirements.lua
 ProfessionCatalog.lua
