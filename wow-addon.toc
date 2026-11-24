@@ -28,7 +28,6 @@ FirstAid.lua
 Engineering.lua
 Tailoring.lua
 HideBuffCollapseArrow.lua
-HidePoisedBuff.lua
 MaximumCameraZoom.lua
 PlayerRareElitePortrait.lua
 ClassPortraits.lua
