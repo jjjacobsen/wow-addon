@@ -103,6 +103,7 @@ function addon.CreateProfessionDetailView(profession, view)
         detail.output.text:SetText(basket.link or detail.entry.name)
         detail.title:SetText("Recipe #" .. detail.entry.recipeID
             .. (detail.entry.requiredSkill and ("  |  " .. profession.shortName .. " " .. detail.entry.requiredSkill) or ""))
+        detail.requirement:SetText(addon.GetProfessionRecipeRequirementText(profession, detail.entry.recipeID) or "Unknown")
         local ah, vendor, known = 0, 0, basket.valid
         for index, line in ipairs(basket.lines) do
             local row = detail.rows[index]
@@ -214,6 +215,10 @@ function addon.CreateProfessionDetailView(profession, view)
     detail.priceSelect = Dropdown(430, 190, "Prices", "prices", {
         { "Latest lowest", "lowest" }, { "14-day median", "median" },
     })
+    Text(detail, 642, -95, 236, "GameFontNormal"):SetText("Reputation / specialization")
+    detail.requirement = Text(detail, 642, -115, 236)
+    detail.requirement:SetHeight(32)
+    detail.requirement:SetJustifyV("TOP")
     detail.yield = Text(detail, 16, -149, 360)
     Text(detail, 390, -149, 456, "GameFontDisableSmall"):SetText("Owned items excluded. Farm inputs cost zero")
     detail.values = {}

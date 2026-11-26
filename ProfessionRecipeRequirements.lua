@@ -1,0 +1,359 @@
+local _, addon = ...
+
+-- WoW Forever 1.60.1.71139 (TOC 16001). Only known recipe learning gates.
+-- The native GetRecipeRequirements lists tools, stations and areas, not these gates.
+-- https://github.com/Gethe/wow-ui-source/tree/d9c22e32cb240afb82bb2ecefbb78ef935333f59
+-- Learning items: ItemSparse, ItemEffect, ItemXItemEffect, SpellEffect and SkillLineAbility at
+-- https://wago.tools/db2/ItemSparse/csv?build=1.60.1.71139
+-- Cross-checked the exact teaching spell and gate before the Use line at
+-- https://nether.wowhead.com/forever/tooltip/item/{itemID}
+-- For tooltips saying "with this faction", the two camps sell the same pattern:
+-- https://www.method.gg/wow-forever/azerorth-commerce-authority-and-durotar-supply-and-logistics-reputation-guide
+-- Trainer exceptions use the specialization lists for Forever, not Classic:
+-- https://www.hardcorehelper.com/forever/guides/leatherworking-specializations
+-- https://www.wowhead.com/forever/guide/professions/engineering-overview-trainer-locations-recipes
+-- https://www.warcrafttavern.com/forever/guides/engineering-specializations/
+-- https://worldofwarcraft.blizzard.com/en-us/news/24315281 (The Mortar: Reloaded)
+-- These records do not prove current availability. An unverified gate is unknown.
+-- The Warbear Harness drop (15742) has no reputation gate, unlike item 20253.
+-- Do not infer a specialization from the name or output. For example, recipe
+-- items 7192 and 221336 teach Goblin Rocket Boots and Goblin Mining Helmet
+-- without any specialization requirement on the learning items.
+
+local argentDawnHonored = "Honored: Argent Dawn"
+local argentDawnRevered = "Revered: Argent Dawn"
+local campFriendly = "Friendly"
+local campHonored = "Honored"
+local cenarionCircleFriendly = "Friendly: Cenarion Circle"
+local cenarionCircleHonored = "Honored: Cenarion Circle"
+local cenarionCircleRevered = "Revered: Cenarion Circle"
+local dragonscaleLeatherworking = "Dragonscale Leatherworking"
+local earthenRingFriendly = "Friendly: Earthen Ring"
+local elementalLeatherworking = "Elemental Leatherworking"
+local gnomishEngineering = "Gnomish Engineering"
+local goblinEngineering = "Goblin Engineering"
+local kirinTorFriendly = "Friendly: Kirin Tor"
+local nightclawDruidsFriendly = "Friendly: Nightclaw Druids"
+local nightclawDruidsHonored = "Honored: Nightclaw Druids"
+local thoriumBrotherhoodFriendly = "Friendly: Thorium Brotherhood"
+local thoriumBrotherhoodHonored = "Honored: Thorium Brotherhood"
+local thoriumBrotherhoodRevered = "Revered: Thorium Brotherhood"
+local timbermawHoldFriendly = "Friendly: Timbermaw Hold"
+local timbermawHoldHonored = "Honored: Timbermaw Hold"
+local timbermawHoldRevered = "Revered: Timbermaw Hold"
+local tribalLeatherworking = "Tribal Leatherworking"
+local zandalarTribeFriendly = "Friendly: Zandalar Tribe"
+local zandalarTribeHonored = "Honored: Zandalar Tribe"
+local zandalarTribeRevered = "Revered: Zandalar Tribe"
+
+local requirementsByProfession = {
+    [129] = { -- First Aid
+        [23787] = argentDawnHonored, -- Powerful Anti-Venom, item 19442
+    },
+    [165] = { -- Leatherworking
+        [10619] = dragonscaleLeatherworking, -- Dragonscale Gauntlets, specialization trainer
+        [10621] = tribalLeatherworking, -- Wolfshead Helm, specialization trainer
+        [10630] = elementalLeatherworking, -- Gauntlets of the Sea, specialization trainer
+        [10632] = elementalLeatherworking, -- Helm of Fire, specialization trainer
+        [10647] = tribalLeatherworking, -- Feathered Breastplate, specialization trainer
+        [10650] = dragonscaleLeatherworking, -- Dragonscale Breastplate, specialization trainer
+        [16650] = tribalLeatherworking, -- Wildthorn Mail, item 12691
+        [16661] = elementalLeatherworking, -- Storm Gauntlets, item 12703
+        [16728] = tribalLeatherworking, -- Helm of the Great Chief, item 12716
+        [16746] = elementalLeatherworking, -- Invulnerable Mail, item 12728
+        [19050] = dragonscaleLeatherworking, -- Green Dragonscale Breastplate, item 15726
+        [19053] = tribalLeatherworking, -- Chimeric Gloves, item 15729
+        [19054] = dragonscaleLeatherworking, -- Red Dragonscale Breastplate, item 15730
+        [19059] = elementalLeatherworking, -- Volcanic Leggings, item 15732
+        [19060] = dragonscaleLeatherworking, -- Green Dragonscale Leggings, item 15733
+        [19061] = elementalLeatherworking, -- Living Shoulders, item 15734
+        [19062] = tribalLeatherworking, -- Ironfeather Shoulders, item 15735
+        [19063] = tribalLeatherworking, -- Chimeric Boots, item 15737
+        [19066] = tribalLeatherworking, -- Frostsaber Boots, item 15740
+        [19067] = elementalLeatherworking, -- Stormshroud Pants, item 15741
+        [19068] = tribalLeatherworking, -- Warbear Harness, item 15742/20253
+        [19073] = tribalLeatherworking, -- Chimeric Leggings, item 15746
+        [19074] = tribalLeatherworking, -- Frostsaber Leggings, item 15747
+        [19076] = elementalLeatherworking, -- Volcanic Breastplate, item 15749
+        [19077] = dragonscaleLeatherworking, -- Blue Dragonscale Breastplate, item 15751
+        [19078] = elementalLeatherworking, -- Living Leggings, item 15752
+        [19079] = elementalLeatherworking, -- Stormshroud Armor, item 15753
+        [19080] = tribalLeatherworking .. "\n" .. timbermawHoldFriendly, -- Warbear Woolies, item 20254
+        [19081] = tribalLeatherworking, -- Chimeric Vest, item 15755
+        [19084] = tribalLeatherworking, -- Devilsaur Gauntlets, item 15758
+        [19085] = dragonscaleLeatherworking, -- Black Dragonscale Breastplate, item 15759
+        [19086] = tribalLeatherworking, -- Ironfeather Breastplate, item 15760
+        [19087] = tribalLeatherworking, -- Frostsaber Gloves, item 15761
+        [19089] = dragonscaleLeatherworking, -- Blue Dragonscale Shoulders, item 15763
+        [19090] = elementalLeatherworking, -- Stormshroud Shoulders, item 15764
+        [19094] = dragonscaleLeatherworking, -- Black Dragonscale Shoulders, item 15770
+        [19095] = elementalLeatherworking, -- Living Breastplate, item 15771
+        [19097] = tribalLeatherworking, -- Devilsaur Leggings, item 15772
+        [19101] = elementalLeatherworking, -- Volcanic Shoulders, item 15775
+        [19104] = tribalLeatherworking, -- Frostsaber Tunic, item 15779
+        [19107] = dragonscaleLeatherworking, -- Black Dragonscale Leggings, item 15781
+        [20853] = tribalLeatherworking .. "\n" .. thoriumBrotherhoodFriendly, -- Corehound Boots, item 17022
+        [20854] = elementalLeatherworking .. "\n" .. thoriumBrotherhoodFriendly, -- Molten Helm, item 17023
+        [20855] = dragonscaleLeatherworking .. "\n" .. thoriumBrotherhoodHonored, -- Black Dragonscale Boots, item 17025
+        [22926] = dragonscaleLeatherworking, -- Chromatic Cloak, item 18517
+        [22927] = tribalLeatherworking, -- Hide of the Wild, item 18518
+        [22928] = elementalLeatherworking, -- Shifting Cloak, item 18519
+        [23628] = timbermawHoldHonored, -- Heavy Timbermaw Belt, item 19202
+        [23629] = timbermawHoldRevered, -- Heavy Timbermaw Boots, item 19204
+        [23703] = timbermawHoldHonored, -- Might of the Timbermaw, item 19326
+        [23704] = timbermawHoldRevered, -- Timbermaw Brawlers, item 19327
+        [23705] = argentDawnHonored, -- Dawn Treaders, item 19328
+        [23706] = argentDawnRevered, -- Golden Mantle of the Dawn, item 19329/227895
+        [23707] = thoriumBrotherhoodHonored, -- Lava Belt, item 19330
+        [23708] = dragonscaleLeatherworking .. "\n" .. thoriumBrotherhoodRevered, -- Chromatic Gauntlets, item 19331
+        [23709] = tribalLeatherworking .. "\n" .. thoriumBrotherhoodRevered, -- Corehound Belt, item 19332
+        [23710] = elementalLeatherworking .. "\n" .. thoriumBrotherhoodRevered, -- Molten Belt, item 19333
+        [24121] = zandalarTribeRevered, -- Primal Batskin Jerkin, item 19769
+        [24122] = zandalarTribeHonored, -- Primal Batskin Gloves, item 19770
+        [24123] = zandalarTribeFriendly, -- Primal Batskin Bracers, item 19771
+        [24124] = zandalarTribeRevered, -- Blood Tiger Breastplate, item 19772
+        [24125] = zandalarTribeHonored, -- Blood Tiger Shoulders, item 19773
+        [24654] = dragonscaleLeatherworking, -- Blue Dragonscale Leggings, specialization trainer
+        [24655] = dragonscaleLeatherworking, -- Green Dragonscale Gauntlets, specialization trainer
+        [26279] = elementalLeatherworking, -- Stormshroud Gloves, item 21548
+        [461645] = dragonscaleLeatherworking, -- Honed Blue Dragonscale Shoulders, item 227899
+        [461649] = dragonscaleLeatherworking, -- Living Green Dragonscale Leggings, item 227900
+        [461653] = dragonscaleLeatherworking, -- Brilliant Chromatic Cloak, item 227910
+        [461655] = dragonscaleLeatherworking, -- Hardened Black Dragonscale Breastplate, item 227902
+        [461657] = dragonscaleLeatherworking, -- Hardened Black Dragonscale Leggings, item 227903
+        [461659] = dragonscaleLeatherworking, -- Hardened Black Dragonscale Shoulders, item 227904
+        [461661] = elementalLeatherworking, -- Masterwork Volcanic Breastplate, item 227906
+        [461663] = elementalLeatherworking, -- Masterwork Volcanic Shoulders, item 227907
+        [461665] = elementalLeatherworking, -- Masterwork Volcanic Leggings, item 227908
+        [461673] = dragonscaleLeatherworking, -- Honed Blue Dragonscale Breastplate, item 227898
+        [461677] = dragonscaleLeatherworking, -- Living Green Dragonscale Gauntlets, item 228251
+        [461690] = elementalLeatherworking, -- Mastercrafted Shifting Cloak, item 228276
+        [461720] = dragonscaleLeatherworking, -- Living Green Dragonscale Breastplate, item 228309
+        [461722] = tribalLeatherworking, -- Devilcore Gauntlets, item 228119
+        [461724] = tribalLeatherworking, -- Devilcore Leggings, item 228120
+        [1254966] = campHonored, -- Mystic Rugged Armor Kit, item 252941
+        [1254982] = campHonored, -- Mender's Mail Belt, item 252925
+        [1254983] = campHonored, -- Skirmisher's Mail Belt, item 252924
+        [1254984] = campHonored, -- Skycaller's Mail Belt, item 252923
+        [1254985] = campHonored, -- Stalker's Mail Belt, item 252922
+        [1254994] = campHonored, -- Mender's Mail Sabatons, item 252913
+        [1254995] = campHonored, -- Skirmisher's Mail Sabatons, item 252912
+        [1254996] = campHonored, -- Skycaller's Mail Sabatons, item 252911
+        [1254997] = campHonored, -- Stalker's Mail Sabatons, item 252910
+        [1255000] = campHonored, -- Mender's Mail Bracers, item 252907
+        [1255001] = campHonored, -- Skirmisher's Mail Bracers, item 252906
+        [1255002] = campHonored, -- Skycaller's Mail Bracers, item 252905
+        [1255003] = campHonored, -- Stalker's Mail Bracers, item 252904
+        [1255004] = campFriendly, -- Mender's Mail Shoulders, item 252903
+        [1255005] = campFriendly, -- Skirmisher's Mail Shoulders, item 252902
+        [1255006] = campFriendly, -- Skycaller's Mail Shoulders, item 252901
+        [1255007] = campFriendly, -- Stalker's Mail Shoulders, item 252900
+        [1255031] = campHonored, -- Mender's Leather Waistguard, item 252876
+        [1255032] = campHonored, -- Skycaller's Leather Waistguard, item 252875
+        [1255033] = campHonored, -- Warden's Leather Waistguard, item 252874
+        [1255034] = campHonored, -- Skulker's Leather Waistguard, item 252873
+        [1255035] = campHonored, -- Prowler's Leather Waistguard, item 252872
+        [1255043] = campHonored, -- Mender's Leather Boots, item 252864
+        [1255044] = campHonored, -- Skycaller's Leather Boots, item 252863
+        [1255045] = campHonored, -- Warden's Leather Boots, item 252862
+        [1255046] = campHonored, -- Skulker's Leather Boots, item 252861
+        [1255047] = campHonored, -- Prowler's Leather Boots, item 252860
+        [1255050] = campHonored, -- Mender's Leather Bracers, item 252857
+        [1255051] = campHonored, -- Skycaller's Leather Bracers, item 252856
+        [1255052] = campHonored, -- Warden's Leather Bracers, item 252855
+        [1255053] = campHonored, -- Skulker's Leather Bracers, item 252854
+        [1255054] = campHonored, -- Prowler's Leather Bracers, item 252853
+        [1255055] = campFriendly, -- Mender's Leather Shoulders, item 252852
+        [1255056] = campFriendly, -- Skycaller's Leather Shoulders, item 252851
+        [1255057] = campFriendly, -- Warden's Leather Shoulders, item 252850
+        [1255058] = campFriendly, -- Skulker's Leather Shoulders, item 252849
+        [1255059] = campFriendly, -- Prowler's Leather Shoulders, item 252848
+        [1255065] = campFriendly, -- Mender's Leather Gloves, item 252842
+        [1255066] = campFriendly, -- Skycaller's Leather Gloves, item 252841
+        [1255067] = campFriendly, -- Skirmisher's Leather Gloves, item 252840
+        [1255069] = campFriendly, -- Stalker's Leather Gloves, item 252838
+        [1255070] = campFriendly, -- Skulker's Leather Gloves, item 252837
+        [1255071] = campFriendly, -- Prowler's Leather Gloves, item 252836
+        [1255073] = campFriendly, -- Forceful Thick Armor Kit, item 252834
+        [1297126] = cenarionCircleFriendly, -- Bileblister Claws, item 275586
+        [1297127] = cenarionCircleHonored, -- Bileblister Girdle, item 275587
+        [1297128] = cenarionCircleHonored, -- Bileblister Boots, item 275588
+        [1297129] = cenarionCircleFriendly, -- Hivethrasher's Claws, item 275589
+        [1297130] = cenarionCircleHonored, -- Hivethrasher's Girdle, item 275590
+        [1297131] = cenarionCircleHonored, -- Hivethrasher's Boots, item 275591
+        [1297132] = cenarionCircleFriendly, -- Scalegut Clenchers, item 275592
+        [1297133] = cenarionCircleHonored, -- Scalegut Belt, item 275593
+        [1297134] = cenarionCircleHonored, -- Scalegut Treaders, item 275594
+        [1297135] = cenarionCircleFriendly, -- Broodwatcher's Clenchers, item 275595
+        [1297136] = cenarionCircleHonored, -- Broodwatcher's Belt, item 275596
+        [1297137] = cenarionCircleHonored, -- Broodwatcher's Treaders, item 275597
+        [1301427] = nightclawDruidsHonored, -- Cloudy Gustwoven Harness, item 276934
+        [1301428] = nightclawDruidsFriendly, -- Cloudy Gustwoven Bracers, item 276935
+        [1301429] = nightclawDruidsFriendly, -- Cloudy Gustwoven Gloves, item 276936
+        [1301430] = nightclawDruidsFriendly, -- Cloudy Gustwoven Belt, item 276937
+        [1301431] = nightclawDruidsHonored, -- Cloudy Gustwoven Trousers, item 276938
+        [1301432] = nightclawDruidsFriendly, -- Cloudy Gustwoven Boots, item 276939
+        [1301433] = nightclawDruidsHonored, -- Cloudy Windraveled Jerkin, item 276940
+        [1301434] = nightclawDruidsFriendly, -- Cloudy Windraveled Armguards, item 276941
+        [1301435] = nightclawDruidsFriendly, -- Cloudy Windraveled Mitts, item 276942
+        [1301436] = nightclawDruidsFriendly, -- Cloudy Windraveled Strap, item 276943
+        [1301437] = nightclawDruidsHonored, -- Cloudy Windraveled Pants, item 276944
+        [1301438] = nightclawDruidsFriendly, -- Cloudy Windraveled Footwraps, item 276945
+        [1301451] = nightclawDruidsHonored, -- Azure Gustwoven Harness, item 276958
+        [1301452] = nightclawDruidsFriendly, -- Azure Gustwoven Bracers, item 276959
+        [1301453] = nightclawDruidsFriendly, -- Azure Gustwoven Gloves, item 276960
+        [1301454] = nightclawDruidsFriendly, -- Azure Gustwoven Belt, item 276961
+        [1301455] = nightclawDruidsHonored, -- Azure Gustwoven Trousers, item 276962
+        [1301456] = nightclawDruidsFriendly, -- Azure Gustwoven Boots, item 276963
+        [1301457] = nightclawDruidsHonored, -- Azure Windraveled Jerkin, item 276964
+        [1301458] = nightclawDruidsFriendly, -- Azure Windraveled Armguards, item 276965
+        [1301459] = nightclawDruidsFriendly, -- Azure Windraveled Mitts, item 276966
+        [1301460] = nightclawDruidsFriendly, -- Azure Windraveled Strap, item 276967
+        [1301461] = nightclawDruidsHonored, -- Azure Windraveled Pants, item 276968
+        [1301462] = nightclawDruidsFriendly, -- Azure Windraveled Footwraps, item 276969
+        [1301528] = earthenRingFriendly, -- Cloudy Gustwoven Hood, item 276978
+        [1301529] = earthenRingFriendly, -- Cloudy Gustwoven Spaulders, item 276979
+        [1301530] = earthenRingFriendly, -- Cloudy Windraveled Cover, item 276980
+        [1301531] = earthenRingFriendly, -- Cloudy Windraveled Drapes, item 276981
+        [1301536] = kirinTorFriendly, -- Azure Gustwoven Hood, item 276986
+        [1301537] = kirinTorFriendly, -- Azure Gustwoven Spaulders, item 276987
+        [1301538] = kirinTorFriendly, -- Azure Windraveled Cover, item 276988
+        [1301539] = kirinTorFriendly, -- Azure Windraveled Drapes, item 276989
+    },
+    [185] = { -- Cooking
+        [1249966] = campFriendly, -- Calcified Smoothie, item 249888
+        [1249967] = campFriendly, -- Spicy Smoothie, item 249889
+        [1249968] = campHonored, -- Wicked Smoothie, item 249890
+    },
+    [197] = { -- Tailoring
+        [20848] = thoriumBrotherhoodHonored, -- Flarecore Mantle, item 17017
+        [20849] = thoriumBrotherhoodFriendly, -- Flarecore Gloves, item 17018
+        [23662] = timbermawHoldHonored, -- Wisdom of the Timbermaw, item 19215
+        [23663] = timbermawHoldRevered, -- Mantle of the Timbermaw, item 19218
+        [23664] = argentDawnHonored, -- Argent Boots, item 19216/227896
+        [23665] = argentDawnRevered, -- Argent Shoulders, item 19217/227897
+        [23666] = thoriumBrotherhoodHonored, -- Flarecore Robe, item 19219
+        [23667] = thoriumBrotherhoodRevered, -- Flarecore Leggings, item 19220
+        [24091] = zandalarTribeRevered, -- Bloodvine Vest, item 19764
+        [24092] = zandalarTribeHonored, -- Bloodvine Leggings, item 19765
+        [24093] = zandalarTribeFriendly, -- Bloodvine Boots, item 19766
+        [27724] = cenarionCircleFriendly, -- Cenarion Herb Bag, item 22310
+        [27725] = cenarionCircleRevered, -- Satchel of Cenarius, item 22312
+        [28210] = cenarionCircleRevered, -- Gaea's Embrace, item 22683
+        [28480] = cenarionCircleRevered, -- Sylvan Vest, item 22774
+        [28481] = cenarionCircleHonored, -- Sylvan Crown, item 22773
+        [28482] = cenarionCircleFriendly, -- Sylvan Shoulders, item 22772
+        [1257437] = campFriendly, -- Frothing Handwraps, item 254024
+        [1257438] = campFriendly, -- Fiery Handwraps, item 254026
+        [1257439] = campFriendly, -- Black Handwraps, item 254028
+        [1257440] = campFriendly, -- Golden Handwraps, item 254030
+        [1257441] = campFriendly, -- Radiant Handwraps, item 254032
+        [1257443] = campFriendly, -- Mageweave Reagent Bag, item 254036
+        [1257450] = campFriendly, -- Nethergeld Shoulders, item 254050
+        [1257451] = campFriendly, -- Netherfroth Shoulders, item 254052
+        [1257452] = campFriendly, -- Netherflame Shoulders, item 254054
+        [1257453] = campFriendly, -- Netherpearl Shoulders, item 254056
+        [1257454] = campFriendly, -- Nethershine Shoulders, item 254058
+        [1257455] = campFriendly, -- Netherlight Shoulders, item 254060
+        [1257456] = campFriendly, -- Nethergeld Cuffs, item 254062
+        [1257457] = campFriendly, -- Netherfroth Cuffs, item 254064
+        [1257458] = campFriendly, -- Netherflame Cuffs, item 254066
+        [1257459] = campFriendly, -- Netherpearl Cuffs, item 254068
+        [1257460] = campFriendly, -- Nethershine Cuffs, item 254070
+        [1257461] = campFriendly, -- Netherlight Cuffs, item 254072
+        [1257465] = campFriendly, -- Runecloth Reagent Bag, item 254080
+        [1257466] = campFriendly, -- Gilded Waistcord, item 254082
+        [1257467] = campFriendly, -- Frothing Waistcord, item 254084
+        [1257468] = campFriendly, -- Fiery Waistcord, item 254086
+        [1257469] = campFriendly, -- Black Waistcord, item 254088
+        [1257470] = campFriendly, -- Golden Waistcord, item 254090
+        [1257471] = campFriendly, -- Radiant Waistcord, item 254092
+        [1257479] = campHonored, -- Gilded Sandals, item 254108
+        [1257480] = campHonored, -- Frothing Sandals, item 254110
+        [1257481] = campHonored, -- Fiery Sandals, item 254112
+        [1257482] = campHonored, -- Black Sandals, item 254114
+        [1257483] = campHonored, -- Golden Sandals, item 254116
+        [1257484] = campHonored, -- Radiant Sandals, item 254118
+        [1297120] = cenarionCircleFriendly, -- Venomspew Gloves, item 275580
+        [1297121] = cenarionCircleHonored, -- Venomspew Cord, item 275581
+        [1297122] = cenarionCircleHonored, -- Venomspew Footpads, item 275582
+        [1297123] = cenarionCircleFriendly, -- Swarmtender's Gloves, item 275583
+        [1297124] = cenarionCircleHonored, -- Swarmtender's Cord, item 275584
+        [1297125] = cenarionCircleHonored, -- Swarmtender's Footpads, item 275585
+        [1301439] = nightclawDruidsHonored, -- Cloudy Stormsewn Vest, item 276946
+        [1301440] = nightclawDruidsFriendly, -- Cloudy Stormsewn Cuffs, item 276947
+        [1301441] = nightclawDruidsFriendly, -- Cloudy Stormsewn Handwraps, item 276948
+        [1301442] = nightclawDruidsFriendly, -- Cloudy Stormsewn Cord, item 276949
+        [1301443] = nightclawDruidsHonored, -- Cloudy Stormsewn Leggings, item 276950
+        [1301444] = nightclawDruidsFriendly, -- Cloudy Stormsewn Shoes, item 276951
+        [1301463] = nightclawDruidsHonored, -- Azure Stormsewn Vest, item 276970
+        [1301464] = nightclawDruidsFriendly, -- Azure Stormsewn Cuffs, item 276971
+        [1301465] = nightclawDruidsFriendly, -- Azure Stormsewn Handwraps, item 276972
+        [1301466] = nightclawDruidsFriendly, -- Azure Stormsewn Cord, item 276973
+        [1301468] = nightclawDruidsHonored, -- Azure Stormsewn Leggings, item 276974
+        [1301469] = nightclawDruidsFriendly, -- Azure Stormsewn Shoes, item 276975
+        [1301532] = earthenRingFriendly, -- Cloudy Stormsewn Cowl, item 276982
+        [1301533] = earthenRingFriendly, -- Cloudy Stormsewn Epaulets, item 276983
+        [1301540] = kirinTorFriendly, -- Azure Stormsewn Cowl, item 276990
+        [1301541] = kirinTorFriendly, -- Azure Stormsewn Epaulets, item 276991
+    },
+    [202] = { -- Engineering
+        [12715] = goblinEngineering, -- Goblin Rocket Fuel Recipe, specialization trainer
+        [12716] = goblinEngineering, -- Goblin Mortar, specialization trainer
+        [12718] = goblinEngineering, -- Goblin Construction Helmet, specialization trainer
+        [12754] = goblinEngineering, -- The Big One, specialization trainer
+        [12755] = goblinEngineering, -- Goblin Bomb Dispenser, specialization trainer
+        [12758] = goblinEngineering, -- Goblin Rocket Helmet, specialization trainer
+        [12759] = gnomishEngineering, -- Gnomish Death Ray, specialization trainer
+        [12760] = goblinEngineering, -- Goblin Sapper Charge, specialization trainer
+        [12895] = gnomishEngineering, -- Inlaid Mithril Cylinder Plans, specialization trainer
+        [12897] = gnomishEngineering, -- Gnomish Goggles, specialization trainer
+        [12899] = gnomishEngineering, -- Gnomish Shrink Ray, specialization trainer
+        [12902] = gnomishEngineering, -- Gnomish Net-o-Matic Projector, specialization trainer
+        [12903] = gnomishEngineering, -- Gnomish Harm Prevention Belt, specialization trainer
+        [12905] = gnomishEngineering, -- Gnomish Rocket Boots, specialization trainer
+        [12906] = gnomishEngineering, -- Gnomish Battle Chicken, specialization trainer
+        [12907] = gnomishEngineering, -- Gnomish Mind Control Cap, specialization trainer
+        [12908] = goblinEngineering, -- Goblin Dragon Gun, specialization trainer
+        [13240] = goblinEngineering, -- The Mortar: Reloaded, learned with Goblin Mortar
+        [23078] = goblinEngineering, -- Goblin Jumper Cables XL, item 18653
+        [23096] = gnomishEngineering, -- Alarm-O-Bot, item 18654
+        [23129] = gnomishEngineering, -- World Enlarger, item 18661
+        [23486] = goblinEngineering, -- Dimensional Ripper - Everlook, specialization trainer
+        [23489] = gnomishEngineering, -- Ultrasafe Transporter - Gadgetzan, specialization trainer
+        [24356] = zandalarTribeHonored, -- Bloodvine Goggles, item 20000
+        [24357] = zandalarTribeFriendly, -- Bloodvine Lens, item 20001
+        [1266912] = campFriendly, -- SAF-T Bell, item 264209
+        [1266914] = campFriendly, -- EZ-Thro Fireproof Fuse, item 264211
+        [1266919] = campHonored, -- Emergency Field Cloak, item 264216
+        [1266920] = campHonored, -- Compact Critter Carrier, item 264217
+        [1266923] = campHonored, -- SAF-T Disposable Parachute, item 264220
+        [1266924] = campHonored, -- Gnomish Army Knife, item 264221
+        [1266925] = campHonored, -- Loot-A-Rang, item 264222
+        [1266935] = campHonored, -- Ultrasafe Rechargeable Battery, item 264232
+        [1266937] = campHonored, -- Gnomish Poultryizer, item 264234
+        [1266938] = campHonored, -- Ultralight Goblin Glider, item 264235
+        [1266940] = campHonored, -- Stealthman 52, item 264237
+        [1308178] = campFriendly, -- Whimsical Waistwrap, item 280321
+        [1308179] = campFriendly, -- Gizmo Girdle, item 280322
+        [1308180] = campFriendly, -- Clanking Cord, item 280323
+        [1308183] = campFriendly, -- Floppy Goggles, item 280325
+        [1308184] = campFriendly, -- Bent Goggles, item 280326
+        [1308185] = campFriendly, -- Stuckbutton Goggles, item 280327
+        [1308186] = campFriendly, -- Dented Goggles, item 280328
+        [1317959] = campFriendly, -- Satchel of Bronze Bombs, item 285286
+        [1317960] = campHonored, -- Satchel of Iron Bombs, item 285287
+        [1317961] = campHonored, -- Satchel of Dark Iron Bombs, item 285288
+    },
+}
+
+function addon.GetProfessionRecipeRequirementText(profession, recipeID)
+    local requirements = requirementsByProfession[profession.id]
+    local requirement = requirements and requirements[recipeID]
+    if requirement == campFriendly or requirement == campHonored then
+        local faction = UnitFactionGroup("player") == "Horde"
+            and "Durotar Supply and Logistics" or "Azeroth Commerce Authority"
+        return requirement .. ": " .. faction
+    end
+    return requirement
+end

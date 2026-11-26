@@ -11,6 +11,7 @@ FiveSecondRule.lua
 CarrotOnAStick.lua
 MinimapButtons.lua
 ProfessionSkillRequirements.lua
+ProfessionRecipeRequirements.lua
 ProfessionCatalog.lua
 VendorPrices.lua
 ProfessionProfit.lua
