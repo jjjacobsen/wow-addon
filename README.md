@@ -85,7 +85,7 @@ Times are account-wide in `JJFlightDurations`, separate from settings, and group
 
 ## Waypoints
 
-Use `/way 58.9 53.6` or `/way 58.9, 53.6` to set the native waypoint in your current zone, not the map you are viewing. Both coordinates must be from 0 to 100. Using `/way` without coordinates shows usage instructions
+Use `/way 58.9 53.6` or `/way 58.9, 53.6` to set the native waypoint in your current zone, not the map you are viewing. For another zone, include its name before the coordinates, as in `/way The Barrens 65.1 34.5 Darkspear Islands`. The trailing label is optional and ignored. Both coordinates must be from 0 to 100. Using `/way` without coordinates shows usage instructions
 Waypoints starts enabled. Toggle it in `/jj`, then click Reload. No custom arrow, tracking, or map window is added
 
 ## Zone level ranges
