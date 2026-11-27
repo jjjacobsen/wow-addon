@@ -10,6 +10,7 @@ MovableWindows.lua
 FiveSecondRule.lua
 CarrotOnAStick.lua
 PvPBalance.lua
+BattlegroundInviteTimer.lua
 MinimapButtons.lua
 ProfessionSkillRequirements.lua
 ProfessionRecipeRequirements.lua
