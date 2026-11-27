@@ -17,7 +17,7 @@ Restart WoW, then enable `wow-addon` in the AddOns menu
 
 Use `/jj` to open the feature settings. Checkbox changes are saved between sessions. Tank mode and Enable Damage Meter take effect immediately. Other changes take effect after a UI reload
 Reload is enabled only when these saved selections differ from the settings applied at startup. Click Reload to apply them
-Reload-based features start enabled except Maximum camera zoom, Five-second rule, Filter Trade chat, and Group finder role filter. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
+Reload-based features start enabled except Maximum camera zoom, Five-second rule, Filter Trade chat, PvP balance, and Group finder role filter. Turn off Hide buff collapse arrow to restore the native collapse button without buff consolidation
 Close the window with Close, its top-right close button, or Escape. Pending selections remain when you reopen it
 
 Class icons for portraits starts enabled. Toggle it in `/jj`, then click Reload to apply it to your portrait and other player portraits. NPC portraits and the rare-elite player border are unchanged
@@ -62,6 +62,11 @@ These rules are fixed. Native chat privacy restrictions can stop filtering while
 Restart WoW after installing the new file. Group finder role filter starts off. Enable it in `/jj`, then click Reload
 In the native Looking For Group Browse tab, open the top-right cog menu for All roles, Tanks, or Healers and Hide groups. Roles filter only solo Players, including players with more than one role. Hide groups removes group results and empty sections. Your own listing and the native Ignore Suggested Level option stay unchanged. Missing role data does not match Tanks or Healers
 Filters cached results only, with native sorting. No extra searches, automatic refreshes, or automatic invites. All roles and visible groups are restored after a UI reload or login
+
+## PvP balance
+
+Enable PvP balance in `/jj`, then click Reload. The counter shows in battlegrounds and arenas. In the open world it shows during detected PvP combat, not just because you are flagged. Right-drag it to move it. Its position is saved
+`5 v 4` means five living allies detected (including you if alive) and four attackable players detected. Counts use nameplates and available range checks for group members and your target. Hidden players can be missed, especially with nameplates off
 
 ## Tank nameplates
 
