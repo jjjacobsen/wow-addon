@@ -1,6 +1,7 @@
 local _, addon = ...
 
--- Static Forever learning requirements, verified 2026-11-11
+-- Static Forever learning requirements, first verified 2026-11-11
+-- Alchemy verified 2026-11-26. Its sources are listed in its block below.
 -- Wowhead rows (1121) cite their learning item:
 -- https://nether.wowhead.com/forever/tooltip/item/{itemID}
 -- https://www.wowhead.com/forever/item={itemID}
@@ -33,7 +34,7 @@ local _, addon = ...
 -- https://www.wowhead.com/forever/spell=1270632/critter-cookie
 -- Solid Dynamite, Quick Facts Requires Engineering (175), not its output tooltip:
 -- https://www.wowhead.com/forever/spell=12586/solid-dynamite
--- Partial coverage: 1309 recipe spells. Missing or conflicting gates stay unknown.
+-- Partial coverage: 1488 recipe spells. Missing or conflicting gates stay unknown.
 -- Counts identify verified requirements, not currently obtainable recipes. Saved
 -- catalogs can include outputs whose availability is unverified. Neither a missing
 -- rank nor a client skill-line entry proves that a recipe is available in Forever.
@@ -1375,5 +1376,191 @@ addon.ProfessionSkillRequirements = {
         [1306543] = 300, -- item 279318
         [1306544] = 300, -- item 279319
         [1306545] = 300, -- item 279320
+    },
+    [171] = { -- Alchemy, 176 verified recipes
+        -- 35 native trainer rows: exact spellId and skillRank from build 1.60.1.71091.
+        -- Data from Efficient Games (https://efficient.games), licensed under CC BY 4.0.
+        -- https://github.com/JIVESCORP/eg-link-output-wowf/blob/1339ce5600bbc2b12e8f1081e584f548f62fa57f/data/wowf/1.60.1.71091/trainers.json
+        -- 3 starters from the Guide's explicit auto and skill fields:
+        -- https://guide.wow4ever.se/yrken/alchemy/recept.json
+        -- 138 other rows use exact Forever teaching-item tooltips. The client
+        -- 1.60.1.71139 teaching links and Guide identify item candidates, not ranks.
+        -- https://wago.tools/db2/ItemXItemEffect/csv?build=1.60.1.71139
+        [2329] = 15, -- native trainer
+        [2331] = 25, -- native trainer
+        [2332] = 40, -- native trainer
+        [2333] = 140, -- item 3396
+        [2334] = 50, -- native trainer, item 2554
+        [2335] = 60, -- item 2555
+        [3170] = 15, -- native trainer
+        [3171] = 90, -- native trainer
+        [3172] = 110, -- item 3393
+        [3173] = 120, -- native trainer
+        [3174] = 120, -- item 3394
+        [3175] = 250, -- item 3395
+        [3176] = 125, -- native trainer
+        [3177] = 130, -- native trainer
+        [3188] = 150, -- item 6211
+        [3230] = 50, -- item 2553
+        [3448] = 165, -- native trainer
+        [3449] = 165, -- item 6068
+        [3450] = 175, -- native trainer, item 3830
+        [3451] = 180, -- item 3831
+        [3452] = 160, -- native trainer
+        [3453] = 195, -- item 3832
+        [3454] = 200, -- item 14634
+        [4508] = 50, -- item 4597
+        [4942] = 215, -- item 4624
+        [6617] = 60, -- item 5640
+        [6618] = 175, -- item 5643
+        [6624] = 150, -- item 5642
+        [7179] = 90, -- native trainer
+        [7183] = 1, -- Forever Guide starter
+        [7255] = 100, -- item 6053
+        [7256] = 135, -- item 6054
+        [7257] = 165, -- item 6055
+        [7258] = 190, -- item 6056
+        [7259] = 190, -- item 6057
+        [7836] = 80, -- native trainer
+        [7837] = 130, -- native trainer
+        [7841] = 100, -- native trainer
+        [7845] = 140, -- native trainer
+        [8240] = 90, -- item 6663
+        [11447] = 180, -- item 288206
+        [11448] = 205, -- native trainer
+        [11449] = 185, -- native trainer
+        [11450] = 195, -- native trainer
+        [11451] = 205, -- native trainer
+        [11453] = 210, -- item 9293
+        [11456] = 210, -- item 10644
+        [11458] = 225, -- item 9294
+        [11459] = 225, -- item 9303
+        [11460] = 230, -- native trainer
+        [11461] = 235, -- native trainer
+        [11464] = 235, -- item 9295
+        [11465] = 235, -- native trainer
+        [11466] = 240, -- item 9296
+        [11467] = 240, -- native trainer
+        [11468] = 240, -- item 9297
+        [11472] = 245, -- item 9298
+        [11473] = 245, -- item 9302
+        [11476] = 250, -- item 9301
+        [11477] = 250, -- item 9300
+        [11478] = 250, -- native trainer
+        [11479] = 225, -- item 9304
+        [11480] = 225, -- item 9305
+        [12609] = 200, -- native trainer
+        [15833] = 230, -- native trainer
+        [17187] = 275, -- item 12958
+        [17551] = 250, -- native trainer
+        [17552] = 255, -- item 13476
+        [17553] = 260, -- item 13477
+        [17554] = 265, -- item 13478
+        [17555] = 270, -- item 13479
+        [17557] = 275, -- item 13481
+        [17559] = 275, -- item 13482
+        [17560] = 275, -- item 13483
+        [17561] = 275, -- item 13484
+        [17562] = 275, -- item 13485
+        [17563] = 275, -- item 13486
+        [17564] = 275, -- item 13487
+        [17565] = 275, -- item 13488
+        [17566] = 275, -- item 13489
+        [17570] = 280, -- item 13490
+        [17571] = 280, -- item 13491
+        [17572] = 285, -- item 13492
+        [17573] = 285, -- item 13493
+        [17574] = 290, -- item 13494
+        [17575] = 290, -- item 13495
+        [17576] = 290, -- item 13496
+        [17577] = 290, -- item 13497
+        [17578] = 290, -- item 13499
+        [17579] = 290, -- item 13500
+        [17580] = 295, -- item 13501
+        [17632] = 275, -- item 13517
+        [17634] = 300, -- item 13518
+        [17635] = 300, -- item 13519
+        [17636] = 300, -- item 13520
+        [17637] = 300, -- item 13521
+        [17638] = 300, -- item 13522
+        [21923] = 190, -- item 17709
+        [22732] = 300, -- item 18257
+        [22808] = 215, -- native trainer
+        [24365] = 275, -- item 20011
+        [24366] = 275, -- item 20012
+        [24367] = 285, -- item 20013
+        [24368] = 290, -- item 20014
+        [25146] = 300, -- item 20761
+        [26277] = 250, -- item 21547
+        [426607] = 90, -- item 210709
+        [435969] = 200, -- item 215433/215434
+        [435971] = 225, -- item 215163
+        [439960] = 190, -- item 217399
+        [1230564] = 20, -- native trainer
+        [1231583] = 250, -- item 241651
+        [1244421] = 250, -- item 236754
+        [1245246] = 1, -- Forever Guide starter
+        [1245250] = 1, -- Forever Guide starter
+        [1249630] = 40, -- native trainer
+        [1249631] = 120, -- native trainer
+        [1249632] = 215, -- native trainer
+        [1249633] = 40, -- native trainer
+        [1250776] = 195, -- item 250363
+        [1250777] = 275, -- item 250364
+        [1250778] = 250, -- item 250365
+        [1250779] = 45, -- item 250366
+        [1250780] = 95, -- item 250367
+        [1250781] = 145, -- item 250368
+        [1250782] = 195, -- item 250369
+        [1250783] = 150, -- item 250370
+        [1250784] = 200, -- item 250371
+        [1250785] = 285, -- item 250372
+        [1250786] = 280, -- item 250373
+        [1250787] = 275, -- item 250374
+        [1250788] = 25, -- item 250375
+        [1250789] = 75, -- item 250376
+        [1250790] = 175, -- item 250377
+        [1250791] = 120, -- item 250378
+        [1250792] = 285, -- item 250379
+        [1250793] = 15, -- item 250380
+        [1250794] = 65, -- item 250381
+        [1250795] = 115, -- item 250382
+        [1250796] = 165, -- item 250383
+        [1250797] = 275, -- item 250384
+        [1250798] = 150, -- item 250385
+        [1250799] = 275, -- item 250386
+        [1250800] = 300, -- item 250387
+        [1250801] = 95, -- item 250388
+        [1250802] = 135, -- item 250389
+        [1251729] = 35, -- item 250976
+        [1251730] = 85, -- item 250977
+        [1251731] = 135, -- item 250978
+        [1251732] = 185, -- item 250979
+        [1251733] = 235, -- item 250980
+        [1251734] = 285, -- item 250981
+        [1251735] = 40, -- item 250982
+        [1251736] = 90, -- item 250983
+        [1251737] = 140, -- item 250984
+        [1251738] = 190, -- item 250985
+        [1251739] = 240, -- item 250986
+        [1251740] = 290, -- item 250987
+        [1251741] = 30, -- item 250988
+        [1251742] = 80, -- item 250989
+        [1251743] = 130, -- item 250990
+        [1251744] = 180, -- item 250991
+        [1251745] = 230, -- item 250992
+        [1251747] = 280, -- item 250993
+        [1251748] = 275, -- item 250994
+        [1251749] = 265, -- item 250995
+        [1251751] = 245, -- item 250997
+        [1251752] = 280, -- item 250998
+        [1251753] = 280, -- item 250999
+        [1263005] = 140, -- item 273085
+        [1263078] = 300, -- item 273112
+        [1293559] = 300, -- item 274277
+        [1293560] = 300, -- item 274278
+        [1293561] = 300, -- item 274279
+        [1293562] = 300, -- item 274280
+        [1317279] = 275, -- item 284871
     },
 }

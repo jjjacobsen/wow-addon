@@ -2,8 +2,8 @@
 ## Title: wow-addon
 ## Notes: Jonah's personal WoW tweaks
 ## Author: Jonah Jacobsen
-## SavedVariables: JJSettings, JJAuctionPrices, JJFlightDurations, JJLWCatalog, JJCookingCatalog, JJFirstAidCatalog, JJEngineeringCatalog, JJTailoringCatalog
-## SavedVariablesPerCharacter: JJTankMode, JJDamageMeterEnabled, JJSavedBank, JJFreeSlotKeep, JJLWCharacter, JJCookingCharacter, JJFirstAidCharacter, JJEngineeringCharacter, JJTailoringCharacter
+## SavedVariables: JJSettings, JJAuctionPrices, JJFlightDurations, JJLWCatalog, JJCookingCatalog, JJFirstAidCatalog, JJEngineeringCatalog, JJTailoringCatalog, JJAlchemyCatalog
+## SavedVariablesPerCharacter: JJTankMode, JJDamageMeterEnabled, JJSavedBank, JJFreeSlotKeep, JJLWCharacter, JJCookingCharacter, JJFirstAidCharacter, JJEngineeringCharacter, JJTailoringCharacter, JJAlchemyCharacter
 
 Core.lua
 MovableWindows.lua
@@ -29,6 +29,7 @@ Cooking.lua
 FirstAid.lua
 Engineering.lua
 Tailoring.lua
+Alchemy.lua
 HideBuffCollapseArrow.lua
 MaximumCameraZoom.lua
 PlayerRareElitePortrait.lua

@@ -150,7 +150,7 @@ local function CreateSettings()
             addon.FreeSlotCommand()
         elseif command == "empty" then
             addon.emptySkillOnly = not addon.emptySkillOnly
-            for _, profession in ipairs({ addon.Leatherworking, addon.Cooking, addon.FirstAid, addon.Engineering, addon.Tailoring }) do
+            for _, profession in ipairs({ addon.Leatherworking, addon.Cooking, addon.FirstAid, addon.Engineering, addon.Tailoring, addon.Alchemy }) do
                 profession.UpdateWindow()
             end
             print("wow-addon: Empty skill filter " .. (addon.emptySkillOnly and "on" or "off"))
@@ -174,12 +174,16 @@ local function CreateSettings()
             addon.TailoringCommand()
         elseif command == "tailorscan" then
             addon.TailoringScanCommand()
+        elseif command == "alchemy" then
+            addon.AlchemyCommand()
+        elseif command == "alchscan" then
+            addon.AlchemyScanCommand()
         elseif command == "tank" then
             ToggleTankMode()
         elseif command == "dmg" then
             ToggleDamageMeter()
         else
-            print("wow-addon: /jj, /jj rw, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj empty, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan, /jj tailor, /jj tailorscan")
+            print("wow-addon: /jj, /jj rw, /jj bank, /jj free, /jj scan, /jj clear, /jj tank, /jj dmg, /jj lw, /jj lwscan, /jj empty, /jj cook, /jj cookscan, /jj fa, /jj fascan, /jj eng, /jj engscan, /jj tailor, /jj tailorscan, /jj alchemy, /jj alchscan")
         end
     end
 end
